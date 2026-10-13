@@ -47,7 +47,7 @@ main{display:grid;grid-template-columns:minmax(330px,430px) minmax(0,1fr);gap:16
 .lv{display:contents} .lv>div{padding:6px 0}
 .lv-name{color:var(--muted)} .lv-name b{display:block;color:var(--text);font-weight:600}
 .lv-price{text-align:right;font-size:20px} .lv-price small{display:block;font-size:12px;color:var(--muted)}
-.lv.entry .lv-price{font-size:30px;color:var(--gold)} .lv.sl .lv-price{color:var(--sell)} .lv.tp .lv-price{color:var(--buy)}
+.lv.entry .lv-price{font-size:24px;color:var(--gold);white-space:nowrap} .lv.sl .lv-price{color:var(--sell)} .lv.tp .lv-price{color:var(--buy)}
 .meta{display:grid;gap:4px;font-size:13px;color:var(--muted);margin-bottom:14px}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .checks{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:7px;font-size:14px}
@@ -57,7 +57,7 @@ main{display:grid;grid-template-columns:minmax(330px,430px) minmax(0,1fr);gap:16
 .checks li.na .mark{color:var(--muted)} .checks li.na{color:var(--muted)}
 .req{margin-left:8px;font-size:11px;color:var(--gold);border:1px solid rgba(63,216,255,.4);border-radius:4px;padding:0 5px;white-space:nowrap}
 .next{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:10px}
-.next-row{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.next-row{display:flex;justify-content:space-between;gap:4px 10px;font-size:14px;flex-wrap:wrap}
 
 .chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap} .tabs button{padding:6px 12px;font-size:13px}
@@ -101,6 +101,8 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 .field>label{font-weight:600;font-size:14px}
 .hint{font-size:12px;color:var(--muted)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.rng-sep{font-size:13px;color:var(--muted);margin:0 8px;text-shadow:none}
 input,select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
 .radio{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
 .radio input{width:auto;margin-top:4px}
@@ -247,7 +249,7 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 <header class="mm-banner">
   <div class="mm-art" role="img" aria-label="Master-Mind FX"></div>
   <div class="mm-bar">
-    <div class="mm-id"><div class="mm-logo" role="img" aria-label="Master-Mind FX logo"></div><div class="brand">XAUUSD<small>Scalper, $6 to $10 moves</small></div></div>
+    <div class="mm-id"><div class="mm-logo" role="img" aria-label="Master-Mind FX logo"></div><div class="brand">XAUUSD<small>Scalper, zone entries with 3 targets</small></div></div>
     <div><span class="px num" id="px">—</span><span class="chg num" id="chg"></span></div>
     <div class="status">
       <div><span class="dot" id="dot"></span><span id="statusText">Connecting…</span></div>
@@ -302,7 +304,7 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
     <div class="bt-controls">
       <label>Period<select id="btDays"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30" selected>Last 30 days</option><option value="60">Last 60 days</option></select></label>
       <label>Spread and costs per trade ($)<input id="btSpread" type="number" value="0.30" step="0.05" min="0"></label>
-      <label>Trade management<select id="btMode"><option value="A">Close everything at TP1</option><option value="B">Half at TP1, stop to entry, rest to TP2</option></select></label>
+      <label>Trade management<select id="btMode"><option value="B">A third at each target, stop to entry after TP1</option><option value="A">Close everything at TP1</option></select></label>
       <button type="button" id="btRun" aria-pressed="true">Run backtest</button>
     </div>
     <div id="btProgress" class="bt-progress" hidden><div class="bt-bar"><span id="btBarFill"></span></div><span id="btMsg" class="small"></span></div>
@@ -328,20 +330,22 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
       <input id="tdKey" type="text" autocomplete="off" spellcheck="false" placeholder="Twelve Data API key" style="margin-top:8px"></span></label>
   </div>
   <div class="field">
-    <label>Targets</label>
-    <div class="row2">
-      <label class="small">First target ($)<input id="t1" type="number" min="3" max="20" step="0.5"></label>
-      <label class="small">Second target ($)<input id="t2" type="number" min="4" max="30" step="0.5"></label>
+    <label>Take profits</label>
+    <span class="hint">Dollars from the middle of the entry range.</span>
+    <div class="row3">
+      <label class="small">TP1 ($)<input id="t1" type="number" min="3" max="20" step="0.5"></label>
+      <label class="small">TP2 ($)<input id="t2" type="number" min="3" max="30" step="0.5"></label>
+      <label class="small">TP3 ($)<input id="t3" type="number" min="3" max="40" step="0.5"></label>
     </div>
   </div>
   <div class="field">
     <label for="maxRisk">Largest stop allowed ($)</label>
     <input id="maxRisk" type="number" min="1.5" max="10" step="0.5">
-    <span class="hint">Setups that need a wider stop are skipped. $4 keeps the first target at 1.5R or better.</span>
+    <span class="hint">Measured from the worst fill in the entry range. Wider zones are trimmed to fit.</span>
   </div>
   <div class="field">
-    <label for="minExtras">Extra confluences needed for A-grade</label>
-    <select id="minExtras"><option value="4">4 of 10</option><option value="5">5 of 10</option><option value="6">6 of 10 (stricter)</option><option value="7">7 of 10 (strictest)</option></select>
+    <label for="minExtras">Confluences needed for an A-grade signal</label>
+    <select id="minExtras"><option value="3">3 of 9</option><option value="4">4 of 9</option><option value="5">5 of 9</option><option value="6">6 of 9 (stricter)</option><option value="7">7 of 9 (strictest)</option></select>
   </div>
   <div class="field">
     <label class="radio" style="border:0;padding:0"><input type="checkbox" id="sound"><span>Play a sound when a new A-grade setup appears</span></label>
@@ -374,9 +378,11 @@ const LIMIT={H1:300,M15:400,M5:500,M1:500};
 const INT={H1:"1h",M15:"15m",M5:"5m",M1:"1m"};
 const EVERY={H1:60,M15:30,M5:15,M1:8};
 const PIVOT_K={H1:3,M15:3,M5:3,M1:2};
-const DEF={t1:6,t2:10,maxRisk:4,minExtras:5,sound:true,offMode:"none",manualOff:0,tdKey:""};
+const DEF={t1:6,t2:8,t3:10,maxRisk:4,minExtras:5,sound:true,offMode:"none",manualOff:0,tdKey:""};
 const S={raw:{},last:{},D1:null,rawPrice:null,priceT:0,A:null,tf:"M5",err:null,lastOk:0,wsGen:0,autoOff:null,autoOffT:0,
-  log:store.get("xau_scalp_log_v1",[]),cfg:Object.assign({},DEF,store.get("xau_scalp_cfg_v1",{}))};
+  log:store.get("xau_scalp_log_v2",[]),cfg:Object.assign({},DEF,store.get("xau_scalp_cfg_v1",{}))};
+if(!S.cfg.t3||S.cfg.t3<S.cfg.t2){S.cfg.t3=Math.max(S.cfg.t2,10);} if(S.cfg.t2>=S.cfg.t3&&S.cfg.t1<S.cfg.t3)S.cfg.t2=+((S.cfg.t1+S.cfg.t3)/2).toFixed(1);
+
 const TZ=-new Date().getTimezoneOffset()*60;
 function offset(){const c=S.cfg; if(c.offMode==="manual")return +c.manualOff||0; if(c.offMode==="auto"&&S.autoOff!=null)return S.autoOff; return 0;}
 const adj=(b,o)=>({t:b.t,o:b.o+o,h:b.h+o,l:b.l+o,c:b.c+o,v:b.v,bv:b.bv});
@@ -502,17 +508,20 @@ function roomFrom(entry,dir,zones,self){
   const opp=zones.filter(z=>z!==self&&(dir===1?z.lo>entry+0.5:z.hi<entry-0.5)).sort((a,b)=>dir===1?a.lo-b.lo:b.hi-a.hi)[0];
   return opp?(dir===1?opp.lo-0.3-entry:entry-(opp.hi+0.3)):Infinity;
 }
-/* Planned limit order for a zone: entry in the near part of the zone (front-running a round number if one sits inside),
-   stop just beyond the far edge, pulled in so the stop never exceeds the max allowed. */
-function plan(z,side,A){
-  const c=S.cfg,buf=Math.max(0.5,0.1*A.atr.M5),w=z.hi-z.lo,sl=side===1?z.lo-buf:z.hi+buf;
-  let entry=side===1?z.hi-0.25*w:z.lo+0.25*w;
-  if(z.round!=null){entry=side===1?Math.min(z.hi,z.round+0.4):Math.max(z.lo,z.round-0.4);}
-  if(side*(entry-sl)>c.maxRisk)entry=sl+side*c.maxRisk;
-  if(side*(entry-sl)<1)entry=sl+side;
-  const risk=Math.abs(entry-sl),room=roomFrom(entry,side,A.zones,z);
-  const tp1=entry+side*c.t1,tp2=entry+side*Math.max(c.t1,Math.min(c.t2,room));
-  return {z,side,entry,sl,tp1,tp2,risk,room,tradable:room>=c.t1,withTrend:side===A.dir};
+/* Trade plan for a zone. The entry RANGE is the zone itself, trimmed so that a fill at the near edge (worst price)
+   never risks more than the max stop. Stop sits just beyond the far edge. Targets are measured from the middle of
+   the range and pulled in if an opposing zone sits in the way. */
+function plan(z,side,H){
+  const c=S.cfg,buf=Math.max(0.5,0.1*H.atr.M5),sl=side===1?z.lo-buf:z.hi+buf;
+  let near=side===1?z.hi:z.lo,far=side===1?z.lo:z.hi;
+  if(side*(near-sl)>c.maxRisk)near=sl+side*c.maxRisk;
+  if(side*(far-sl)<1)far=sl+side;
+  if(side*(near-far)<0.4)near=far+side*0.4;
+  const lo=Math.min(near,far),hi=Math.max(near,far),mid=(lo+hi)/2;
+  const room=roomFrom(mid,side,H.zones,z);
+  const tp=[c.t1,c.t2,c.t3].map(d=>mid+side*Math.min(d,Math.max(room,c.t1)));
+  return {z,side,lo,hi,near,far,mid,sl,risk:Math.abs(mid-sl),worst:Math.abs(near-sl),
+    tp1:tp[0],tp2:tp[1],tp3:tp[2],room,tradable:room>=c.t1,withTrend:side===H.dir};
 }
 
 /* ---------- session ---------- */
@@ -527,58 +536,49 @@ function session(t){
 }
 
 /* ---------- signal evaluation ---------- */
-function evaluate(A){
-  const {C,st,atr,zones,price,dir}=A,c=S.cfg,m1=C.M1,n1=m1.length;
-  const buf=Math.max(0.5,0.1*atr.M5),tol=Math.max(0.4,0.08*atr.M5),sweepMax=Math.max(1.5,0.3*atr.M5);
-  const from=n1-30,rl=extremeIdx(m1,from,dir),ext=dir===1?m1[rl].l:m1[rl].h;
-  let prior=dir===1?-Infinity:Infinity;
-  for(let j=Math.max(0,from-30);j<rl;j++)prior=dir===1?Math.max(prior,m1[j].h):Math.min(prior,m1[j].l);
-  const zone=zones.filter(z=>dir===1?ext<=z.hi+tol&&ext>=z.lo-sweepMax&&prior>z.hi:ext>=z.lo-tol&&ext<=z.hi+sweepMax&&prior<z.lo)
-    .sort((a,b)=>b.strength-a.strength)[0];
-  if(!zone)return {stage:"zone"};
-  const ev=st.M1.events.find(e=>e.dir===dir&&e.i>rl);
-  const valid=ev&&!st.M1.events.some(x=>x.i>ev.i&&x.dir===-dir)&&dir*(ev.level-ext)>=0.8;
-  if(!valid)return {stage:"confirm",zone,trigger:dir===1?st.M1.openHigh:st.M1.openLow};
-
-  const entry=ev.level,sl=ext-dir*buf,risk=Math.abs(entry-sl),room=roomFrom(entry,dir,zones,zone);
-  const tp1=entry+dir*c.t1,tp2=entry+dir*Math.max(c.t1,Math.min(c.t2,room));
-  const age=n1-1-ev.i,moved=dir*(price-entry),invalid=dir*(price-sl)<=0;
-  // extras
-  const closes=m1.map(b=>b.c),e9=ema(closes,9),e21=ema(closes,21),r14=rsi(closes,14);
-  const avgV=sum(m1.slice(Math.max(0,ev.i-20),ev.i),b=>b.v)/Math.min(20,ev.i||1);
-  const last15=m1.slice(-15),bShare=sum(last15,b=>b.bv)/Math.max(1e-9,sum(last15,b=>b.v));
-  let rsiTap=NaN;for(let j=Math.max(0,rl-2);j<=Math.min(n1-1,rl+2);j++)if(isFinite(r14[j]))rsiTap=dir===1?Math.min(isFinite(rsiTap)?rsiTap:100,r14[j]):Math.max(isFinite(rsiTap)?rsiTap:0,r14[j]);
-  const m5piv=(dir===1?st.M5.ls:st.M5.hs).filter(p=>p.t<m1[rl].t).at(-1);
-  const sweep=(dir===1?ext<zone.lo:ext>zone.hi)||!!(m5piv&&(dir===1?ext<m5piv.p&&price>m5piv.p:ext>m5piv.p&&price<m5piv.p));
-  const sess=session(A.t),side=dir===1?"buy":"sell";
-  const keyTxt=zone.tags.length?zone.tags.join(", "):zone.round!=null?`round number ${fmt(zone.round,0)}`:"";
+/* Scores the next with-trend zone price is pulling back into. A signal fires BEFORE price reaches the level,
+   once price is within the approach distance and enough confluence lines up, so the limit orders sit on the level. */
+function approachDist(H){return Math.max(3,0.5*H.atr.M15);}
+function evalZone(H,ctx){
+  const {dir,zones,atr}=H,c=S.cfg;if(!dir)return {stage:"nobias"};
+  const {m1,i,rsiA,price,t}=ctx;
+  const plans=zones.filter(z=>dir===1?z.lo<price:z.hi>price).map(z=>plan(z,dir,H))
+    .filter(p=>dir*(price-p.sl)>0).sort((a,b)=>dir===1?b.hi-a.hi:a.lo-b.lo);
+  const p=plans[0];if(!p)return {stage:"nozone"};
+  const dist=Math.max(0,dir===1?price-p.near:p.near-price),ad=approachDist(H);
+  // zone tested recently? any 1m bar overlapping the range in the last 2 hours (excluding the last 3 minutes of approach)
+  let tested=false;for(let j=Math.max(0,i-120);j<=i-3;j++){const b=m1[j];if(b.l<=p.hi&&b.h>=p.lo){tested=true;break;}}
+  let broken=false;for(let j=Math.max(0,i-30);j<=i;j++){if(dir*(m1[j].c-p.sl)<=0){broken=true;break;}}
+  const r=rsiA[i];
+  let vf=0,vs=0;for(let j=i-14;j<=i;j++)vf+=m1[j]?m1[j].v:0;for(let j=i-74;j<i-14;j++)vs+=m1[j]?m1[j].v:0;
+  const vRatio=vs>0?(vf/15)/(vs/60):NaN;
+  const sess=session(t),side=dir===1?"buy":"sell",z=p.z;
+  const keyTxt=z.tags.length?z.tags.join(", "):z.round!=null?`round number ${fmt(z.round,0)}`:"";
   const checks=[
     {req:true,ok:true,label:`15m structure ${dir===1?"bullish":"bearish"} and price ${dir===1?"above":"below"} the 5m EMA 200`},
     {req:true,ok:!sess.closed,label:sess.closed?"Gold market is closed":"Gold market is open"},
-    {req:true,ok:true,label:`Price reacted at a ${side} zone (${zone.touches} touch${zone.touches>1?"es":""})`},
-    {req:true,ok:true,label:`1m ${ev.type} ${dir===1?"up":"down"} on a candle close after the reaction`},
-    {req:true,ok:risk<=c.maxRisk,label:`Stop is $${fmt(risk)} (max $${fmt(c.maxRisk)})`},
-    {req:true,ok:room>=c.t1,label:isFinite(room)?`$${fmt(room)} of room before the next opposing zone (need $${fmt(c.t1)})`:"Clear room to the targets"},
-    {req:true,ok:age<=8&&moved<0.5*c.t1&&!invalid,label:invalid?"Stop already hit":age>8?"Confirmation is older than 8 minutes":moved>=0.5*c.t1?"Price already ran toward target":"Fresh, entry still available"},
-    {req:false,ok:st.H1.trend===dir,label:"1H structure agrees"},
-    {req:false,ok:st.M5.trend===dir,label:"5m structure agrees"},
-    {req:false,ok:dir*(e9.at(-1)-e21.at(-1))>0,label:`1m EMA 9 ${dir===1?"above":"below"} EMA 21 (momentum)`},
-    {req:false,ok:isFinite(A.vwap)&&dir*(price-A.vwap)>0,label:`Price ${dir===1?"above":"below"} today's VWAP`},
-    {req:false,ok:avgV>0&&m1[ev.i].v>=1.5*avgV,label:`Volume spike on the confirming candle (${avgV>0?(m1[ev.i].v/avgV).toFixed(1):"—"}x average)`},
-    {req:false,ok:dir===1?bShare>=0.52:bShare<=0.48,label:`${dir===1?"Buyers":"Sellers"} in control over 15 minutes (${Math.round((dir===1?bShare:1-bShare)*100)}% of volume)`},
-    {req:false,ok:dir===1?rsiTap<=35:rsiTap>=65,label:`1m RSI ${dir===1?"oversold":"overbought"} at the tap (${isFinite(rsiTap)?rsiTap.toFixed(0):"—"})`},
-    {req:false,ok:!!keyTxt,label:keyTxt?`Key level in the zone: ${keyTxt}`:"Key level in the zone"},
-    {req:false,ok:sweep,label:"Liquidity sweep before the turn"},
-    {req:false,ok:sess.active,label:sess.active?`Active session: ${sess.name}`:"Outside London and New York hours"}
+    {req:true,ok:true,label:`Proven ${side} zone (${z.touches} touch${z.touches>1?"es":""}${z.tags.length?", key level":""})`},
+    {req:true,ok:p.worst<=c.maxRisk+1e-9,label:`Stop is $${fmt(p.worst)} from the worst fill (max $${fmt(c.maxRisk)})`},
+    {req:true,ok:p.tradable,label:isFinite(p.room)?`$${fmt(p.room)} of room to the next opposing zone (need $${fmt(c.t1)})`:"Clear room to all targets"},
+    {req:true,ok:!broken,label:broken?"Zone was broken in the last 30 minutes":"Zone is intact"},
+    {req:false,ok:H.st.H1.trend===dir,label:"1H structure agrees"},
+    {req:false,ok:z.touches>=3||z.tfs.includes("H1"),label:"Strong zone (3+ touches or a 1H swing)"},
+    {req:false,ok:!!keyTxt,label:keyTxt?`Key level inside: ${keyTxt}`:"Key level or round number inside"},
+    {req:false,ok:isFinite(H.vwap)&&dir*(price-H.vwap)>0,label:`Price ${dir===1?"above":"below"} today's VWAP`},
+    {req:false,ok:!tested,label:tested?"Zone was already tested in the last 2 hours":"Fresh zone, untested for 2+ hours"},
+    {req:false,ok:sess.active,label:sess.active?`Active session: ${sess.name}`:"Outside London and New York hours"},
+    {req:false,ok:dir===1?r<=40:r>=60,label:`Pullback stretched, 1m RSI ${isFinite(r)?r.toFixed(0):"—"}`},
+    {req:false,ok:isFinite(vRatio)&&vRatio<0.85,label:`Pullback on lighter volume (${isFinite(vRatio)?vRatio.toFixed(2):"—"}x)`},
+    {req:false,ok:p.room>=c.t3,label:`Full room to TP3 ($${fmt(c.t3)})`}
   ];
-  const extras=checks.filter(x=>!x.req),bonus=extras.filter(x=>x.ok).length;
-  const reqOk=checks.filter(x=>x.req).every(x=>x.ok);
-  return {stage:"setup",zone,ev,entry,sl,tp1,tp2,risk,room,checks,bonus,total:extras.length,
-    grade:reqOk&&bonus>=c.minExtras?"A":"B",id:`${dir}-${ev.t}`};
+  const extras=checks.filter(x=>!x.req),bonus=extras.filter(x=>x.ok).length,reqOk=checks.filter(x=>x.req).every(x=>x.ok);
+  const near=dist<=ad;
+  return {stage:near?"setup":"approach",plan:p,dist,ad,checks,bonus,total:extras.length,reqOk,
+    grade:near&&reqOk&&bonus>=c.minExtras?"A":"B",id:`${dir}-${Math.round(p.mid*2)/2}`};
 }
 
 /* ---------- analysis ---------- */
-/* Pure analysis used by both live mode and the backtest. C = closed, price-adjusted bars per timeframe at time t. */
+/* Pure higher-timeframe analysis used by live mode and the backtest. C = closed, price-adjusted bars at time t. */
 function analyze(C,vwBars,D1,t,price,off){
   const st={},atr={};
   for(const tf of TFS){st[tf]=structure(C[tf],PIVOT_K[tf]);atr[tf]=lastVal(atrSeries(C[tf]));}
@@ -587,49 +587,76 @@ function analyze(C,vwBars,D1,t,price,off){
   const keys=keyLevels(C,off,t,D1),zones=buildZones(C,atr,keys);
   const emaSide=Math.sign(price-ema200);
   const dir=st.M15.trend!==0&&st.M15.trend===emaSide?st.M15.trend:0;
-  const A={C,st,atr,zones,keys,price,t,ema200,vwap,dir,off};
-  A.ev=dir?evaluate(A):null;
-  return A;
+  return {C,st,atr,zones,keys,price,t,ema200,vwap,dir,off};
 }
 function runAnalysis(){
   const t=nowS(),off=offset(),C={};
   for(const tf of TFS)C[tf]=S.raw[tf].filter(b=>b.t+TF_SEC[tf]<=t+1).map(b=>adj(b,off));
   const price=livePrice();
   const A=analyze(C,S.raw.M5.map(b=>adj(b,off)),S.D1,t,price,off);
-  const {zones,atr}=A;
-  const rng=Math.max(30,8*atr.M15);
-  A.buys=zones.filter(z=>z.mid<price&&price-z.mid<rng).sort((a,b)=>b.mid-a.mid).slice(0,4).map(z=>plan(z,1,A));
-  A.sells=zones.filter(z=>z.mid>price&&z.mid-price<rng).sort((a,b)=>a.mid-b.mid).slice(0,4).map(z=>plan(z,-1,A));
-  S.A=A; recordSignal(A); updateOutcomes(); renderAll();
+  const m1=C.M1;
+  A.ev=evalZone(A,{m1,i:m1.length-1,rsiA:rsi(m1.map(b=>b.c),14),price,t});
+  const rng=Math.max(30,8*A.atr.M15);
+  A.buys=A.zones.filter(z=>z.mid<price&&price-z.mid<rng).sort((a,b)=>b.mid-a.mid).slice(0,4).map(z=>plan(z,1,A));
+  A.sells=A.zones.filter(z=>z.mid>price&&z.mid-price<rng).sort((a,b)=>a.mid-b.mid).slice(0,4).map(z=>plan(z,-1,A));
+  S.A=A;recordSignal(A);updateOutcomes();renderAll();
+}
+
+/* ---------- trade simulation (shared by live tracking and the backtest) ---------- */
+/* Order rests at the middle of the entry range for 60 minutes. Stop is checked before targets inside a candle.
+   Mode A: everything closes at TP1. Mode B: a third closes at each target and the stop moves to entry after TP1. */
+function simZone(s,bars,j0,maxHold=240,expiry=60){
+  const d=s.dir,e=s.mid,tp=[s.tp1,s.tp2,s.tp3],risk=Math.abs(e-s.sl);
+  let fill=-1,j=j0;
+  for(;j<bars.length;j++){const b=bars[j];
+    if(j-j0>=expiry)return {status:"expired",endJ:j,hit:0};
+    if(d===1?b.l<=e:b.h>=e){fill=j;break;}
+    if(d===1?b.h>=s.tp1:b.l<=s.tp1)return {status:"missed",endJ:j,hit:0};
+  }
+  if(fill<0)return {status:"pending",endJ:bars.length-1,hit:0};
+  let stop=s.sl,hit=0,A=null,B=0,endA=-1,mae=0;
+  for(j=fill;j<bars.length;j++){const b=bars[j],held=j-fill;
+    mae=Math.max(mae,d===1?e-b.l:b.h-e);
+    if(d===1?b.l<=stop:b.h>=stop){
+      if(hit===0){A=-risk;B=-risk;endA=j;return {status:"loss",fill,endJ:j,endA,hit,A,B,mae:Math.min(mae,risk),risk};}
+      B+=(1-hit/3)*d*(stop-e);return {status:"tp"+hit,fill,endJ:j,endA,hit,A,B,mae,risk};
+    }
+    if(j>fill){
+      while(hit<3&&(d===1?b.h>=tp[hit]:b.l<=tp[hit])){hit++;B+=Math.abs(tp[hit-1]-e)/3;if(hit===1){A=Math.abs(s.tp1-e);endA=j;stop=e;}}
+      if(hit===3)return {status:"tp3",fill,endJ:j,endA,hit,A,B,mae,risk};
+    }
+    if(held>=maxHold){const px=d*(b.c-e);
+      if(hit===0){A=B=px;endA=j;}else B+=(1-hit/3)*px;
+      return {status:hit?"tp"+hit:"timeout",fill,endJ:j,endA,hit,A,B,mae,risk};}
+  }
+  return {status:hit?"running":"live",fill,endJ:bars.length-1,endA,hit,A,B,mae,risk};
 }
 
 /* ---------- signals ---------- */
-const isOpen=s=>s.status==="pending"||s.status==="live";
+const OPEN=["pending","live","running"];
+const isOpen=s=>OPEN.includes(s.status);
 const activeSignal=()=>S.log.filter(isOpen).at(-1)||null;
+function recentSame(log,dir,mid,t){return log.some(s=>s.dir===dir&&Math.abs(s.mid-mid)<1.5&&t-s.t<4*3600);}
 function recordSignal(A){
   const e=A.ev;if(!e||e.stage!=="setup"||e.grade!=="A")return;
-  if(S.log.some(s=>s.id===e.id)||S.log.some(isOpen))return;
-  const s={id:e.id,t:e.ev.t,created:nowS(),dir:A.dir,entry:e.entry,sl:e.sl,tp1:e.tp1,tp2:e.tp2,risk:e.risk,off:A.off,
-    zone:{lo:e.zone.lo,hi:e.zone.hi},bonus:e.bonus,total:e.total,checks:e.checks,status:"pending"};
-  S.log.push(s);if(S.log.length>300)S.log=S.log.slice(-300);store.set("xau_scalp_log_v1",S.log);alertSignal(s);
+  if(S.log.some(isOpen)||recentSame(S.log,A.dir,e.plan.mid,A.t))return;
+  const p=e.plan;
+  const s={id:e.id+"-"+Math.round(A.t),t:Math.floor(A.t/60)*60,created:nowS(),dir:A.dir,lo:p.lo,hi:p.hi,mid:p.mid,sl:p.sl,
+    tp1:p.tp1,tp2:p.tp2,tp3:p.tp3,risk:p.risk,worst:p.worst,off:A.off,zone:{lo:p.z.lo,hi:p.z.hi},
+    bonus:e.bonus,total:e.total,checks:e.checks,status:"pending",hit:0};
+  S.log.push(s);if(S.log.length>300)S.log=S.log.slice(-300);store.set("xau_scalp_log_v2",S.log);alertSignal(s);
 }
 function updateOutcomes(){
-  const m1=S.raw.M1;if(!m1)return;let dirty=false;
+  const raw=S.raw.M1;if(!raw)return;let dirty=false;
   for(const s of S.log){
     if(!isOpen(s))continue;
-    const o=s.off||0,start=s.status==="live"?s.fillT:s.t+60;
-    for(const r of m1){
-      if(r.t<start)continue;const b=adj(r,o);
-      if(s.status==="pending"){
-        if(!(s.dir===1?b.l<=s.entry:b.h>=s.entry)){if(s.dir===1?b.h>=s.tp1:b.l<=s.tp1){s.status="missed";dirty=true;break;}continue;}
-        s.status="live";s.fillT=b.t;dirty=true;
-      }
-      if(s.dir===1?b.l<=s.sl:b.h>=s.sl){s.status="loss";s.closeT=b.t;dirty=true;break;}
-      if(b.t!==s.fillT&&(s.dir===1?b.h>=s.tp1:b.l<=s.tp1)){s.status="win";s.closeT=b.t;dirty=true;break;}
-    }
-    if(s.status==="pending"&&nowS()-s.created>30*60){s.status="expired";dirty=true;}
+    const bars=raw.map(b=>adj(b,s.off||0)),j0=bars.findIndex(b=>b.t>=s.t);
+    if(j0<0)continue;
+    const r=simZone(s,bars,j0);
+    if(r.status!==s.status||r.hit!==s.hit){s.status=r.status;s.hit=r.hit;s.fillT=r.fill>=0&&bars[r.fill]?bars[r.fill].t:null;dirty=true;}
+    if(s.status==="pending"&&nowS()-s.created>3600){s.status="expired";dirty=true;}
   }
-  if(dirty)store.set("xau_scalp_log_v1",S.log);
+  if(dirty)store.set("xau_scalp_log_v2",S.log);
 }
 
 /* ---------- alerts ---------- */
@@ -638,10 +665,10 @@ function beep(){if(!audioCtx)return;try{[0,0.18].forEach((d,i)=>{const o=audioCt
   o.frequency.value=i?1046:784;o.connect(g);g.connect(audioCtx.destination);const t=audioCtx.currentTime+d;
   g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);o.start(t);o.stop(t+0.17);});}catch(e){}}
 function alertSignal(s){
-  const msg=`${s.dir===1?"BUY":"SELL"} XAUUSD at ${fmt(s.entry)}`;if(S.cfg.sound)beep();
+  const msg=`${s.dir===1?"BUY":"SELL"} XAUUSD ${fmt(s.lo)}-${fmt(s.hi)}`;if(S.cfg.sound)beep();
   clearInterval(flashTimer);let on=false,n=0;
   flashTimer=setInterval(()=>{document.title=(on=!on)?"● "+msg:"Master-Mind FX | XAUUSD Scalper";if(++n>20){clearInterval(flashTimer);document.title="Master-Mind FX | XAUUSD Scalper";}},800);
-  try{if("Notification" in window&&Notification.permission==="granted")new Notification(msg,{body:`SL ${fmt(s.sl)}  TP1 ${fmt(s.tp1)}  TP2 ${fmt(s.tp2)}`});}catch(e){}
+  try{if("Notification" in window&&Notification.permission==="granted")new Notification(msg,{body:`SL ${fmt(s.sl)}  `+tpList(s).map((x,k)=>`TP${k+1} ${fmt(x)}`).join("  ")});}catch(e){}
 }
 $("#alertsBtn").addEventListener("click",async()=>{
   try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();beep();}catch(e){}
@@ -673,27 +700,31 @@ function checksHTML(checks){
 }
 function nextZonesHTML(A){
   const b=A.buys.find(p=>p.tradable),s=A.sells.find(p=>p.tradable);
-  const row=(p,label)=>p?`<div class="next-row"><span>${label}${p.withTrend?"":' <span class="muted small">(counter-trend)</span>'}</span><span class="num ${p.side===1?"up":"dn"}">${fmt(p.entry)}</span></div>
-    <div class="next-row small muted"><span>Zone ${fmt(p.z.lo)} to ${fmt(p.z.hi)}</span><span class="num">SL ${fmt(p.sl)}, TP ${fmt(p.tp1)} / ${fmt(p.tp2)}</span></div>`:"";
+  const row=(p,label)=>p?`<div class="next-row"><span>${label}${p.withTrend?"":' <span class="muted small">(counter-trend)</span>'}</span><span class="num ${p.side===1?"up":"dn"}">${fmt(p.lo)} to ${fmt(p.hi)}</span></div>
+    <div class="next-row small muted"><span>SL ${fmt(p.sl)}</span><span class="num">TP ${tpList(p).map(fmt).join(" / ")}</span></div>`:"";
   if(!b&&!s)return "";
-  return `<div class="next">${row(b,"Next buy entry")}${row(s,"Next sell entry")}</div>`;
+  return `<div class="next">${row(b,"Next buy range")}${row(s,"Next sell range")}</div>`;
 }
+const tpList=s=>[s.tp1,s.tp2,s.tp3].filter((x,k,a)=>k===0||Math.abs(x-a[k-1])>0.05);
+const STATUS_LABEL={pending:"Waiting for fill",live:"In trade",running:"TP1 hit, running",loss:"Stopped",tp1:"TP1 hit",tp2:"TP2 hit",tp3:"TP3 hit",
+  timeout:"Closed after 4h",missed:"Missed",expired:"Expired",dismissed:"Dismissed"};
 function signalHTML(s){
-  const A=S.A,p=A?A.price:null,R=x=>s.dir*(x-s.entry)/s.risk,dist=x=>`${x-s.entry>=0?"+":"−"}$${fmt(Math.abs(x-s.entry))}`;
+  const p=S.A?S.A.price:null,d=s.dir,R=x=>d*(x-s.mid)/s.risk,dist=x=>`${x-s.mid>=0?"+":"−"}$${fmt(Math.abs(x-s.mid))}`;
   let state;
-  if(s.status==="live")state=`In trade, currently ${p!=null&&s.dir*(p-s.entry)>=0?"+":"−"}$${fmt(Math.abs((p??s.entry)-s.entry))}.`;
-  else if(p!=null&&s.dir*(p-s.entry)<=0.5)state="Price is at entry. A market order fills here.";
-  else state=`Place a ${s.dir===1?"buy":"sell"} limit at ${fmt(s.entry)}. It expires 30 minutes after the signal.`;
-  const row=(cls,name,sub,price,note)=>`<div class="lv ${cls}"><div class="lv-name"><b>${name}</b>${sub}</div><div class="lv-price num">${fmt(price)}<small>${note}</small></div></div>`;
-  return `<div class="sig-top"><div class="sig-dir">${s.dir===1?"Buy":"Sell"}</div><div class="grade">A-grade, ${s.bonus} of ${s.total} extras</div></div>
+  if(s.status==="running")state=`TP${s.hit} hit. Stop is now at entry, ${fmt(s.mid)}, so the rest of the trade is risk-free.`;
+  else if(s.status==="live")state=`Filled. Holding for TP1 at ${fmt(s.tp1)}. Stop ${fmt(s.sl)}.`;
+  else if(p!=null&&(d===1?p<=s.hi:p>=s.lo))state=`Price is inside the entry range now.`;
+  else state=`Set ${d===1?"buy":"sell"} limits between ${fmt(s.lo)} and ${fmt(s.hi)}. Price is $${fmt(Math.abs((p??s.hi)-(d===1?s.hi:s.lo)))} away. Cancel if not filled within 60 minutes.`;
+  const row=(cls,name,sub,price,note)=>`<div class="lv ${cls}"><div class="lv-name"><b>${name}</b>${sub}</div><div class="lv-price num">${price}<small>${note}</small></div></div>`;
+  return `<div class="sig-top"><div class="sig-dir">${d===1?"Buy":"Sell"}</div><div class="grade">A-grade, ${s.bonus} of ${s.total} confluences</div></div>
   <p class="sig-state">${esc(state)}</p>
   <div class="levels">
-    ${row("entry","Entry","Retest of the 1m break",s.entry,"")}
-    ${row("sl","Stop loss","Beyond the reaction "+(s.dir===1?"low":"high"),s.sl,`${dist(s.sl)}, −1R`)}
-    ${row("tp","Take profit 1","Bank part here, stop to entry",s.tp1,`${dist(s.tp1)}, +${R(s.tp1).toFixed(1)}R`)}
-    ${row("tp","Take profit 2","Runner",s.tp2,`${dist(s.tp2)}, +${R(s.tp2).toFixed(1)}R`)}
+    ${row("entry","Entry range",`Ideal ${fmt(s.mid)}, the middle`,`${fmt(s.lo)}<span class="rng-sep">to</span>${fmt(s.hi)}`,`worst fill risks $${fmt(s.worst)}`)}
+    ${row("sl","Stop loss","Beyond the zone",fmt(s.sl),`${dist(s.sl)}, −1R`)}
+    ${tpList(s).map((x,k)=>row("tp","Take profit "+(k+1),k===0?"Move stop to entry":"",fmt(x),`${dist(x)}, +${R(x).toFixed(1)}R`)).join("")}
   </div>
-  <div class="meta"><span>Confirmed on the 1m at ${when(s.t+60)}</span><span>Reaction zone ${fmt(s.zone.lo)} to ${fmt(s.zone.hi)}</span></div>
+  ${tpList(s).length<3?`<p class="small muted">Only ${tpList(s).length===1?"one target fits":"two targets fit"}: the next ${d===1?"resistance":"support"} zone sits $${fmt(Math.abs(s.tp3-s.mid))} from entry, so further targets are capped there.</p>`:""}
+  <div class="meta"><span>Signalled ${when(s.created)}. Status: ${STATUS_LABEL[s.status]||s.status}</span><span>Zone ${fmt(s.zone.lo)} to ${fmt(s.zone.hi)}</span></div>
   ${checksHTML(s.checks)}
   <div class="btnrow"><button type="button" id="copyBtn">Copy levels</button><button type="button" id="dismissBtn">Dismiss signal</button></div>`;
 }
@@ -702,27 +733,30 @@ function watchHTML(A){
   if(!A.dir){
     const m15=A.st.M15.trend,side=A.price>A.ema200?"above":"below";
     body=`<h2>No A-grade setup</h2><p>The 15m is <b>${dirWord(m15).toLowerCase()}</b> but price is ${side} the 5m EMA 200, so trend and momentum disagree. The scanner waits for them to line up.</p>`;
-  }else{
-    const side=A.dir===1?"buy":"sell",zword=A.dir===1?"pull back into":"rally into";
-    body=`<h2>No A-grade setup</h2><p><b class="${A.dir===1?"up":"dn"}">${dirWord(A.dir)}</b> on the 15m with price ${A.dir===1?"above":"below"} the 5m EMA 200, so it's hunting ${side}s only. `;
-    if(e.stage==="zone"){const p=(A.dir===1?A.buys:A.sells).find(x=>x.tradable);
-      body+=p?`Waiting for price to ${zword} the ${side} zone at <span class="num">${fmt(p.z.lo)} to ${fmt(p.z.hi)}</span>, $${fmt(Math.abs(A.price-p.z.mid))} away.</p>`:`No tradable ${side} zone within reach yet.</p>`;}
-    else if(e.stage==="confirm")body+=`Price is reacting at <span class="num">${fmt(e.zone.lo)} to ${fmt(e.zone.hi)}</span>. ${e.trigger!=null?`Waiting for a 1m candle to close ${A.dir===1?"above":"below"} <span class="num">${fmt(e.trigger)}</span>.`:"Waiting for the 1m to form a swing and break it."}</p>`;
-    else{const done=S.log.find(s=>s.id===e.id);
-      body+=e.grade==="A"&&done?`The last setup has closed (${done.status}). Waiting for the next one.</p>`
-        :`A setup formed but it isn't A-grade (${e.bonus} of ${e.total} extras), so it's skipped.</p>${checksHTML(e.checks)}`;}
+    return body+nextZonesHTML(A);
   }
-  return body+nextZonesHTML(A);
+  const side=A.dir===1?"buy":"sell";
+  body=`<h2>No A-grade setup</h2><p><b class="${A.dir===1?"up":"dn"}">${dirWord(A.dir)}</b> on the 15m with price ${A.dir===1?"above":"below"} the 5m EMA 200, so it's hunting ${side}s only. `;
+  if(e.stage==="nozone")return body+`No proven ${side} zone below price yet.</p>`+nextZonesHTML(A);
+  const p=e.plan,rng=`<span class="num">${fmt(p.lo)} to ${fmt(p.hi)}</span>`;
+  const done=S.log.find(s=>isOpen(s)===false&&s.dir===A.dir&&Math.abs(s.mid-p.mid)<1.5&&A.t-s.t<4*3600);
+  if(done)body+=`The ${side} range at ${rng} already signalled recently (${STATUS_LABEL[done.status]||done.status}), so it won't repeat for 4 hours.</p>`;
+  else if(e.stage==="approach")body+=`Next ${side} range is ${rng}, $${fmt(e.dist)} away. `+(e.reqOk&&e.bonus>=S.cfg.minExtras
+      ?`It qualifies with ${e.bonus} of ${e.total} confluences and will signal once price is within $${fmt(e.ad)}.</p>`
+      :`It has ${e.bonus} of ${e.total} confluences${e.reqOk?"":" and fails a required check"}; it needs ${S.cfg.minExtras} to signal.</p>`);
+  else body+=`Price is near the ${side} range at ${rng}, but it has ${e.bonus} of ${e.total} confluences${e.reqOk?"":" and fails a required check"}, so it's skipped.</p>`;
+  return body+checksHTML(e.checks)+nextZonesHTML(A);
 }
 function renderHero(){
   const el=$("#hero"),s=activeSignal();
   if(s){el.className="panel hero "+(s.dir===1?"buy":"sell");el.innerHTML=signalHTML(s);
-    $("#copyBtn").onclick=()=>copyText(`XAUUSD ${s.dir===1?"BUY":"SELL"} ${fmt(s.entry)}\nSL ${fmt(s.sl)}\nTP1 ${fmt(s.tp1)}\nTP2 ${fmt(s.tp2)}`,$("#copyBtn"));
-    $("#dismissBtn").onclick=()=>{s.status="dismissed";store.set("xau_scalp_log_v1",S.log);renderAll();};return;}
+    $("#copyBtn").onclick=()=>copyText(`XAUUSD ${s.dir===1?"BUY":"SELL"} ${fmt(s.lo)} - ${fmt(s.hi)}\nSL ${fmt(s.sl)}\n`+tpList(s).map((x,k)=>`TP${k+1} ${fmt(x)}`).join("\n"),$("#copyBtn"));
+    $("#dismissBtn").onclick=()=>{s.status="dismissed";store.set("xau_scalp_log_v2",S.log);renderAll();};return;}
   el.className="panel hero idle";
   if(!S.A){el.innerHTML=S.err?`<h2>Can't load prices</h2><p class="muted">${esc(S.err)}</p>`:`<h2>Loading the market</h2><p class="muted">Pulling 1H, 15m, 5m and 1m candles with volume.</p>`;return;}
   el.innerHTML=watchHTML(S.A);
 }
+
 function copyText(t,btn){
   const done=()=>{btn.textContent="Copied";setTimeout(()=>btn.textContent="Copy levels",1500);};
   const fb=()=>{const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");done();}catch(e){}a.remove();};
@@ -775,20 +809,20 @@ function renderZones(){
       `<span class="tag">${p.z.touches} touch${p.z.touches>1?"es":""}${p.z.tfs.length?", "+p.z.tfs.join("/"):""}</span>`,
       p.withTrend?`<span class="tag good">with trend</span>`:A.dir?`<span class="tag">counter-trend</span>`:"",
       p.tradable?"":`<span class="tag">only $${fmt(p.room)} room</span>`].join("");
-    return `<tr class="${p.tradable?"":"dim"}"><td class="num">${fmt(p.z.lo)}<br>${fmt(p.z.hi)}</td><td class="r num ${p.side===1?"up":"dn"}" style="font-weight:700">${fmt(p.entry)}</td><td class="r num">${fmt(p.sl)}<br><span class="muted small">$${fmt(p.risk)}</span></td><td class="r num">${fmt(p.tp1)}<br>${fmt(p.tp2)}</td><td>${tags}</td></tr>`;};
-  el.innerHTML=`<table><thead><tr><th>Zone</th><th class="r">Best entry</th><th class="r">Stop</th><th class="r">TP1 / TP2</th><th>Why it matters</th></tr></thead><tbody>
-    <tr class="sep"><td colspan="5">Sell zones</td></tr>${A.sells.slice().reverse().map(row).join("")||'<tr><td colspan="5" class="muted">None within range</td></tr>'}
-    <tr class="sep"><td colspan="5">Price now ${fmt(A.price)}</td></tr>
-    <tr class="sep"><td colspan="5">Buy zones</td></tr>${A.buys.map(row).join("")||'<tr><td colspan="5" class="muted">None within range</td></tr>'}
-  </tbody></table><p class="small muted" style="margin-top:10px">Best entry is a limit order in the near part of the zone, just in front of a round number when one sits inside it. Greyed rows don't have $${fmt(S.cfg.t1)} of room before the next opposing zone. The live signal above adds 1m confirmation on top of these.</p>`;
+    return `<tr class="${p.tradable?"":"dim"}"><td class="r num ${p.side===1?"up":"dn"}" style="font-weight:700">${fmt(p.lo)}<br>${fmt(p.hi)}</td><td class="r num">${fmt(p.sl)}<br><span class="muted small">$${fmt(p.worst)} max</span></td><td class="r num">${tpList(p).map(fmt).join("<br>")}</td><td>${tags}</td></tr>`;};
+  el.innerHTML=`<table><thead><tr><th class="r">Entry range</th><th class="r">Stop</th><th class="r">TP1 / 2 / 3</th><th>Why it matters</th></tr></thead><tbody>
+    <tr class="sep"><td colspan="4">Sell zones</td></tr>${A.sells.slice().reverse().map(row).join("")||'<tr><td colspan="4" class="muted">None within range</td></tr>'}
+    <tr class="sep"><td colspan="4">Price now ${fmt(A.price)}</td></tr>
+    <tr class="sep"><td colspan="4">Buy zones</td></tr>${A.buys.map(row).join("")||'<tr><td colspan="4" class="muted">None within range</td></tr>'}
+  </tbody></table><p class="small muted" style="margin-top:10px">Each range is the support or resistance zone itself, trimmed so a fill at its worst edge never risks more than $${fmt(S.cfg.maxRisk)}. Targets are measured from the middle of the range. Greyed rows don't have $${fmt(S.cfg.t1)} of room before the next opposing zone. Only with-trend ranges with enough confluence become signals.</p>`;
 }
 function renderHistory(){
-  const rows=S.log.slice(-15).reverse(),closed=S.log.filter(s=>s.status==="win"||s.status==="loss"),w=closed.filter(s=>s.status==="win").length;
-  $("#stats").textContent=closed.length?`${w} wins, ${closed.length-w} losses at TP1 (${Math.round(w/closed.length*100)}% hit rate) from ${closed.length} filled trades.`:"Signals and their results are recorded here as they happen.";
+  const rows=S.log.slice(-15).reverse(),closed=S.log.filter(s=>["loss","tp1","tp2","tp3","timeout"].includes(s.status));
+  const w=closed.filter(s=>s.hit>0).length;
+  $("#stats").textContent=closed.length?`${w} of ${closed.length} filled trades reached TP1 or better (${Math.round(w/closed.length*100)}%).`:"Signals and their results are recorded here as they happen.";
   if(!rows.length){$("#history").innerHTML='<p class="muted small">No A-grade signals yet.</p>';return;}
-  const lab={pending:"Waiting fill",live:"In trade",win:"TP1 hit",loss:"Stopped",missed:"Missed",expired:"Expired",dismissed:"Dismissed"};
-  $("#history").innerHTML=`<table><thead><tr><th>Time</th><th>Side</th><th class="r">Entry</th><th class="r">SL</th><th class="r">TP1</th><th>Result</th></tr></thead><tbody>
-  ${rows.map(s=>`<tr><td>${when(s.created)}</td><td class="${s.dir===1?"up":"dn"}">${s.dir===1?"Buy":"Sell"}</td><td class="r num">${fmt(s.entry)}</td><td class="r num">${fmt(s.sl)}</td><td class="r num">${fmt(s.tp1)}</td><td><span class="pill ${s.status==="win"?"win":s.status==="loss"?"loss":isOpen(s)?"live":""}">${lab[s.status]||s.status}</span></td></tr>`).join("")}</tbody></table>`;
+  $("#history").innerHTML=`<table><thead><tr><th>Time</th><th>Side</th><th class="r">Entry range</th><th class="r">SL</th><th>Result</th></tr></thead><tbody>
+  ${rows.map(s=>`<tr><td>${when(s.created)}</td><td class="${s.dir===1?"up":"dn"}">${s.dir===1?"Buy":"Sell"}</td><td class="r num">${fmt(s.lo)} to ${fmt(s.hi)}</td><td class="r num">${fmt(s.sl)}</td><td><span class="pill ${s.hit>0?"win":s.status==="loss"?"loss":isOpen(s)?"live":""}">${STATUS_LABEL[s.status]||s.status}</span></td></tr>`).join("")}</tbody></table>`;
 }
 
 /* ---------- chart ---------- */
@@ -820,23 +854,23 @@ function drawChart(resetView){
   vwapLine.setData(tf==="H1"?[]:vwapSeries(bars).filter(p=>p.t>=today&&isFinite(p.value)).map(p=>({time:p.t+TZ,value:p.value})));
   const e=ema(bars.map(b=>b.c),200);emaLine.setData(bars.map((b,i)=>({time:b.t+TZ,value:e[i]})).filter(p=>isFinite(p.value)));
   priceLines.forEach(l=>series.removePriceLine(l));priceLines=[];
-  const markers=[],A=S.A;
+  const markers=[],A=S.A,s=activeSignal();
   if(A){
-    const zl=(p)=>{const col=p.side===1?"rgba(25,230,193,0.6)":"rgba(255,51,85,0.6)";
-      priceLines.push(series.createPriceLine({price:p.z.hi,color:col,lineWidth:1,lineStyle:2,axisLabelVisible:false,title:""}));
-      priceLines.push(series.createPriceLine({price:p.z.lo,color:col,lineWidth:1,lineStyle:2,axisLabelVisible:false,title:""}));
-      if(p.tradable)priceLines.push(series.createPriceLine({price:p.entry,color:p.side===1?"#19e6c1":"#ff3355",lineWidth:1,lineStyle:1,axisLabelVisible:true,title:p.side===1?"buy":"sell"}));};
-    A.buys.slice(0,3).forEach(zl);A.sells.slice(0,3).forEach(zl);
+    const zl=p=>{const col=p.side===1?"rgba(25,230,193,0.55)":"rgba(255,51,85,0.55)";
+      priceLines.push(series.createPriceLine({price:p.hi,color:col,lineWidth:1,lineStyle:2,axisLabelVisible:false,title:p.side===-1&&p.tradable?"sell zone":""}));
+      priceLines.push(series.createPriceLine({price:p.lo,color:col,lineWidth:1,lineStyle:2,axisLabelVisible:false,title:p.side===1&&p.tradable?"buy zone":""}));};
+    if(!s){A.buys.slice(0,3).forEach(zl);A.sells.slice(0,3).forEach(zl);}
     const st=A.st[tf];if(st)st.events.slice(-12).forEach(e=>markers.push({time:e.t+TZ,position:e.dir===1?"belowBar":"aboveBar",color:e.dir===1?"#19e6c1":"#ff3355",shape:"circle",text:e.type}));
   }
-  const s=activeSignal();
-  if(s){const L=(price,color,title,w)=>priceLines.push(series.createPriceLine({price,color,lineWidth:w,lineStyle:0,axisLabelVisible:true,title}));
-    L(s.entry,"#3fd8ff","Entry",2);L(s.sl,"#ff3355","SL",2);L(s.tp1,"#19e6c1","TP1",2);L(s.tp2,"#19e6c1","TP2",1);
+  if(s){const L=(price,color,title,w,style=0,lab=true)=>priceLines.push(series.createPriceLine({price,color,lineWidth:w,lineStyle:style,axisLabelVisible:lab,title}));
+    L(s.hi,"#3fd8ff",s.dir===1?"Entry top":"Entry",2);L(s.lo,"#3fd8ff",s.dir===1?"Entry":"Entry bottom",2);L(s.mid,"rgba(63,216,255,0.6)","",1,1,false);
+    L(s.sl,"#ff3355","SL",2);tpList(s).forEach((x,k)=>L(x,"#19e6c1","TP"+(k+1),k?1:2));
     const bar=bars.find(b=>s.t>=b.t&&s.t<b.t+TF_SEC[tf]);
-    if(bar)markers.push({time:bar.t+TZ,position:s.dir===1?"belowBar":"aboveBar",color:"#3fd8ff",shape:s.dir===1?"arrowUp":"arrowDown",text:s.dir===1?"BUY":"SELL"});}
+    if(bar)markers.push({time:bar.t+TZ,position:s.dir===1?"belowBar":"aboveBar",color:"#3fd8ff",shape:s.dir===1?"arrowUp":"arrowDown",text:s.dir===1?"BUY ZONE":"SELL ZONE"});}
   markers.sort((a,b)=>a.time-b.time);series.setMarkers(markers);
   if(resetView){const n=bars.length;chart.timeScale().setVisibleLogicalRange({from:n-140,to:n+6});}
 }
+
 let firstDraw=true;
 function renderAll(){renderPrice();renderStatus();renderHero();renderTrend();renderVolume();renderKeys();renderZones();renderHistory();drawChart(firstDraw);firstDraw=false;}
 
@@ -845,7 +879,7 @@ const dlg=$("#settings");
 function manualInfo(){const c=S.cfg;$("#manualInfo").textContent=c.offMode==="manual"&&c.manualOff?`Current adjustment ${c.manualOff>=0?"+":"−"}$${fmt(Math.abs(c.manualOff))}`:"";}
 $("#settingsBtn").onclick=()=>{const c=S.cfg;
   dlg.querySelectorAll('input[name="off"]').forEach(r=>r.checked=r.value===c.offMode);
-  $("#tdKey").value=c.tdKey;$("#t1").value=c.t1;$("#t2").value=c.t2;$("#maxRisk").value=c.maxRisk;$("#minExtras").value=String(c.minExtras);$("#sound").checked=c.sound;
+  $("#tdKey").value=c.tdKey;$("#t1").value=c.t1;$("#t2").value=c.t2;$("#t3").value=c.t3;$("#maxRisk").value=c.maxRisk;$("#minExtras").value=String(c.minExtras);$("#sound").checked=c.sound;
   $("#brokerPx").value="";manualInfo();dlg.showModal();};
 let pendingManual=null;
 $("#matchBtn").onclick=()=>{const bp=+$("#brokerPx").value,r=rawLive();
@@ -855,8 +889,8 @@ $("#matchBtn").onclick=()=>{const bp=+$("#brokerPx").value,r=rawLive();
 $("#closeSettings").onclick=()=>{pendingManual=null;dlg.close();};
 $("#saveSettings").onclick=()=>{
   const mode=(dlg.querySelector('input[name="off"]:checked')||{}).value||"none";
-  let t1=+$("#t1").value||6,t2=+$("#t2").value||10;if(t2<t1)t2=t1;
-  S.cfg={...S.cfg,offMode:mode,tdKey:$("#tdKey").value.trim(),t1,t2,maxRisk:+$("#maxRisk").value||4,minExtras:+$("#minExtras").value,sound:$("#sound").checked};
+  let t1=+$("#t1").value||6,t2=+$("#t2").value||8,t3=+$("#t3").value||10;if(t2<t1)t2=t1;if(t3<t2)t3=t2;
+  S.cfg={...S.cfg,offMode:mode,tdKey:$("#tdKey").value.trim(),t1,t2,t3,maxRisk:+$("#maxRisk").value||4,minExtras:+$("#minExtras").value,sound:$("#sound").checked};
   if(pendingManual!=null)S.cfg.manualOff=pendingManual;pendingManual=null;
   store.set("xau_scalp_cfg_v1",S.cfg);dlg.close();
   if(mode==="auto"&&S.cfg.tdKey){S.autoOffT=0;calibrate().then(()=>S.A&&runAnalysis());}
@@ -865,7 +899,7 @@ $("#saveSettings").onclick=()=>{
 
 
 /* ---------- backtest ---------- */
-const BT={running:false,abort:false,rep:null,trades:{},k:null,mode:"A",spread:0.3,chart:null,days:30};
+const BT={running:false,abort:false,rep:null,k:null,mode:"B",spread:0.3,chart:null,days:30};
 const lowerBound=(arr,t)=>{let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;if(arr[m].t<t)lo=m+1;else hi=m;}return lo;};
 const yieldUI=()=>new Promise(r=>setTimeout(r,0));
 async function fetchRange(interval,sec,start,end,tick){
@@ -881,84 +915,54 @@ async function fetchRange(interval,sec,start,end,tick){
   }
   return out;
 }
-/* Walks every closed 1m candle. The full engine runs wherever the 1m prints a structure break
-   (the only moments a signal can start) and for 8 minutes after any setup, exactly like live mode. */
+/* Walks every closed 1m candle. Higher-timeframe analysis (structure, zones, EMA, VWAP) is rebuilt each time a 5m candle
+   closes, using only candles that existed then. The zone confluence check runs every minute, exactly as in live mode. */
 async function btReplay(data,start,off,onProg){
   const A1={};for(const tf of TFS)A1[tf]=data[tf].map(b=>adj(b,off));
-  const m1=A1.M1,iStart=lowerBound(m1,start);
-  const full=structure(m1,PIVOT_K.M1),isEvent=new Uint8Array(m1.length);
-  for(const e of full.events)isEvent[e.i]=1;
-  const cands=new Map();let extend=-1,runs=0,last=performance.now();
+  const m1=A1.M1,iStart=lowerBound(m1,start),rsiA=rsi(m1.map(b=>b.c),14);
+  const cands=[];let H=null,last=performance.now();
   for(let i=iStart;i<m1.length;i++){
     if(BT.abort)throw new Error("Backtest stopped.");
-    if(isEvent[i]||i<=extend){
-      const T=m1[i].t+60,C={};
-      for(const tf of TFS){const arr=A1[tf],e=lowerBound(arr,T-TF_SEC[tf]+1);C[tf]=arr.slice(Math.max(0,e-(LIMIT[tf]-1)),e);}
-      if(C.M1.length>100&&C.M5.length>210&&C.M15.length>60&&C.H1.length>60){
-        const A=analyze(C,C.M5,data.D1,T,m1[i].c,off),e=A.ev;runs++;
-        if(e&&e.stage==="setup"){
-          extend=Math.max(extend,i+8);
-          if(e.checks.filter(c=>c.req).every(c=>c.ok)){
-            if(!cands.has(e.id))cands.set(e.id,[]);
-            cands.get(e.id).push({i,T,dir:A.dir,bonus:e.bonus,entry:e.entry,sl:e.sl,tp1:e.tp1,tp2:e.tp2,risk:e.risk,sess:session(T).name,
-              extras:e.checks.filter(c=>!c.req&&c.ok).map(c=>c.label)});
-          }
-        }
-      }
+    const T=m1[i].t+60;
+    if(!H||T%300===0){
+      const C={};for(const tf of TFS){const arr=A1[tf],e=lowerBound(arr,T-TF_SEC[tf]+1);C[tf]=arr.slice(Math.max(0,e-(LIMIT[tf]-1)),e);}
+      H=(C.M1.length>100&&C.M5.length>210&&C.M15.length>60&&C.H1.length>60)?analyze(C,C.M5,data.D1,T,m1[i].c,off):null;
     }
-    if(performance.now()-last>40){onProg((i-iStart)/Math.max(1,m1.length-iStart),runs);await yieldUI();last=performance.now();}
-  }
-  return {m1,cands:[...cands.values()],start,end:m1.at(-1).t+60};
-}
-/* One trade on 1m bars. Limit entry, 30 minute expiry, stop checked before target inside the same candle.
-   Mode A closes everything at TP1. Mode B closes half at TP1, moves the stop to entry and runs the rest to TP2. */
-function simTrade(s,m1,maxHold){
-  const d=s.dir,t1d=Math.abs(s.tp1-s.entry),t2d=Math.abs(s.tp2-s.entry);
-  let j=s.i+1,fillJ=-1;
-  for(;j<m1.length;j++){const b=m1[j];
-    if(j-s.i>30)return {status:"expired",endJ:j};
-    if(d===1?b.l<=s.entry:b.h>=s.entry){fillJ=j;break;}
-    if(d===1?b.h>=s.tp1:b.l<=s.tp1)return {status:"missed",endJ:j};
-  }
-  if(fillJ<0)return {status:"open",endJ:m1.length-1};
-  let A=null,B=null,endA=-1,endB=-1,tp1J=-1,status=null;
-  for(j=fillJ;j<m1.length;j++){const b=m1[j],held=j-fillJ;
-    if(tp1J<0){
-      if(d===1?b.l<=s.sl:b.h>=s.sl){A=B=-s.risk;endA=endB=j;status="loss";break;}
-      if(j>fillJ&&(d===1?b.h>=s.tp1:b.l<=s.tp1)){A=t1d;endA=tp1J=j;status="win";continue;}
-      if(held>=maxHold){A=B=d*(b.c-s.entry);endA=endB=j;status="timeout";break;}
-    }else{
-      if(d===1?b.l<=s.entry:b.h>=s.entry){B=0.5*t1d;endB=j;break;}
-      if(d===1?b.h>=s.tp2:b.l<=s.tp2){B=0.5*t1d+0.5*t2d;endB=j;break;}
-      if(held>=maxHold){B=0.5*t1d+0.5*d*(b.c-s.entry);endB=j;break;}
+    if(H&&H.dir){
+      const ev=evalZone(H,{m1,i,rsiA,price:m1[i].c,t:T});
+      if(ev.stage==="setup"&&ev.reqOk){const p=ev.plan;
+        cands.push({i,T,dir:H.dir,bonus:ev.bonus,lo:p.lo,hi:p.hi,mid:p.mid,sl:p.sl,tp1:p.tp1,tp2:p.tp2,tp3:p.tp3,risk:p.risk,sess:session(T).name});}
     }
+    if(performance.now()-last>40){onProg((i-iStart)/Math.max(1,m1.length-iStart));await yieldUI();last=performance.now();}
   }
-  if(A==null)return {status:"open",endJ:m1.length-1};
-  if(B==null){B=0.5*t1d+0.5*d*(m1.at(-1).c-s.entry);endB=m1.length-1;}
-  return {status,fillJ,endJ:endA,endA,endB,A,B};
+  return {m1,cands,start,end:m1.at(-1).t+60};
 }
+/* Same rules as live: one trade at a time, and the same zone can't signal again in the same direction for 4 hours. */
 function btSimulate(rep,k,spread){
-  const sigs=[];for(const list of rep.cands){const f=list.find(x=>x.bonus>=k);if(f)sigs.push(f);}
-  sigs.sort((a,b)=>a.T-b.T);
   const out=[];let freeAt=0;
-  for(const s of sigs){
-    if(s.T<freeAt)continue;
-    const r=simTrade(s,rep.m1,240);freeAt=rep.m1[r.endJ].t+60;
-    out.push({...s,...r,pA:r.A!=null?r.A-spread:null,pB:r.B!=null?r.B-spread:null,
-      fillT:r.fillJ!=null?rep.m1[r.fillJ].t:null,exitT:rep.m1[r.endJ].t+60,exitTB:r.endB!=null?rep.m1[r.endB].t+60:null});
+  for(const c of rep.cands){
+    if(c.bonus<k||c.T<freeAt||recentSame(out,c.dir,c.mid,c.T))continue;
+    const s={...c,t:c.T},r=simZone(s,rep.m1,c.i+1);
+    freeAt=rep.m1[Math.min(r.endJ,rep.m1.length-1)].t+60;
+    const done=!["pending","live","running"].includes(r.status);
+    out.push({...s,...r,pA:done&&r.A!=null?r.A-spread:null,pB:done&&r.A!=null?r.B-spread:null,
+      exitT:rep.m1[Math.min(r.endJ,rep.m1.length-1)].t+60,exitTA:r.endA>=0?rep.m1[r.endA].t+60:null});
   }
   return out;
 }
 function btStats(trades,mode){
   const P=t=>mode==="A"?t.pA:t.pB,f=trades.filter(t=>P(t)!=null);
-  let eq=0,eqR=0,peak=0,dd=0,streak=0,worst=0,gp=0,gl=0;const curve=[];
-  for(const t of f.slice().sort((a,b)=>(mode==="A"?a.exitT:a.exitTB)-(mode==="A"?b.exitT:b.exitTB))){
-    const p=P(t);eq+=p;eqR+=p/t.risk;peak=Math.max(peak,eq);dd=Math.max(dd,peak-eq);
-    if(p>0){gp+=p;streak=0;}else{gl-=p;streak++;worst=Math.max(worst,streak);}
-    curve.push({t:mode==="A"?t.exitT:t.exitTB,v:eq});
+  let eq=0,eqR=0,peak=0,dd=0,streak=0,worst=0,gp=0,gl=0,mae=0;const curve=[];
+  const tOf=t=>mode==="A"?t.exitTA:t.exitT;
+  for(const t of f.slice().sort((a,b)=>tOf(a)-tOf(b))){
+    const p=P(t);eq+=p;eqR+=p/t.risk;peak=Math.max(peak,eq);dd=Math.max(dd,peak-eq);mae+=t.mae||0;
+    if(p>0){gp+=p;streak=0;}else{gl-=p;if(p<0){streak++;worst=Math.max(worst,streak);}}
+    curve.push({t:tOf(t),v:eq});
   }
-  const wins=f.filter(t=>P(t)>0).length;
-  return {n:f.length,wins,wr:f.length?wins/f.length:NaN,net:eq,netR:eqR,avg:f.length?eq/f.length:NaN,avgR:f.length?eqR/f.length:NaN,
+  const hits=n=>f.filter(t=>t.hit>=n).length;
+  return {n:f.length,wins:f.filter(t=>P(t)>0).length,wr:f.length?f.filter(t=>P(t)>0).length/f.length:NaN,
+    tp1:f.length?hits(1)/f.length:NaN,tp2:f.length?hits(2)/f.length:NaN,tp3:f.length?hits(3)/f.length:NaN,
+    net:eq,netR:eqR,avg:f.length?eq/f.length:NaN,avgR:f.length?eqR/f.length:NaN,heat:f.length?mae/f.length:NaN,
     pf:gl>0?gp/gl:gp>0?Infinity:NaN,dd,streak:worst,curve,
     missed:trades.filter(t=>t.status==="missed").length,expired:trades.filter(t=>t.status==="expired").length};
 }
@@ -966,7 +970,6 @@ function btGroup(trades,mode,key){
   const g={};for(const t of trades){const p=mode==="A"?t.pA:t.pB;if(p==null)continue;const k=key(t);(g[k]=g[k]||[]).push(t);}
   return Object.entries(g).map(([k,list])=>({k,s:btStats(list,mode)})).sort((a,b)=>b.s.n-a.s.n);
 }
-
 async function runBacktest(){
   if(BT.running){BT.abort=true;return;}
   BT.running=true;BT.abort=false;
@@ -981,7 +984,7 @@ async function runBacktest(){
     for(const tf of TFS)data[tf]=await fetchRange(INT[tf],TF_SEC[tf],start-warm[tf],end,tick);
     data.D1=await fetchRange("1d",86400,start-5*86400,end,tick);
     if(data.M1.length<1000)throw new Error("Not enough history came back from Binance.");
-    BT.rep=await btReplay(data,start,offset(),(f,runs)=>{fill.style.width=(40+f*60).toFixed(1)+"%";msg.textContent=`Replaying ${days} days of 1m candles, ${Math.round(f*100)}%`;});
+    BT.rep=await btReplay(data,start,offset(),f=>{fill.style.width=(40+f*60).toFixed(1)+"%";msg.textContent=`Replaying ${days} days of 1m candles, ${Math.round(f*100)}%`;});
     BT.days=days;BT.k=S.cfg.minExtras;BT.cfgUsed={...S.cfg};
     prog.hidden=true;renderBacktest();
   }catch(e){msg.textContent=(e&&e.message)||"Backtest failed.";fill.style.width="0";}
@@ -997,35 +1000,35 @@ function renderBacktest(){
   const trades=sims[BT.k]||btSimulate(rep,BT.k,BT.spread),st=btStats(trades,BT.mode),c=BT.cfgUsed;
   const tile=(label,val,cls="")=>`<div class="bt-tile"><div class="small muted">${label}</div><div class="bt-v num ${cls}">${val}</div></div>`;
   const pnlCls=x=>x>0?"up":x<0?"dn":"";
+  const pfTxt=s=>isFinite(s.pf)?s.pf.toFixed(2):s.pf===Infinity?"∞":"—";
   const thr=ks.map(k=>{const s=btStats(sims[k],BT.mode);
-    return `<tr class="bt-k${k===BT.k?" sel":""}" data-k="${k}" tabindex="0"><td>${k} of 10${k===c.minExtras?' <span class="tag good">your setting</span>':""}</td><td class="r num">${s.n}</td><td class="r num">${pct(s.wr)}</td><td class="r num ${pnlCls(s.net)}">${money(s.net)}</td><td class="r num ${pnlCls(s.netR)}">${rTxt(s.netR)}</td><td class="r num">${isFinite(s.pf)?s.pf.toFixed(2):s.pf===Infinity?"∞":"—"}</td><td class="r num">${money(-s.dd)}</td></tr>`;}).join("");
-  const grp=(title,rows)=>`<table><thead><tr><th>${title}</th><th class="r">Trades</th><th class="r">Win rate</th><th class="r">Net per 0.01 lot</th><th class="r">Avg</th></tr></thead><tbody>
-    ${rows.map(g=>`<tr><td>${esc(g.k)}</td><td class="r num">${g.s.n}</td><td class="r num">${pct(g.s.wr)}</td><td class="r num ${pnlCls(g.s.net)}">${money(g.s.net)}</td><td class="r num">${rTxt(g.s.avgR)}</td></tr>`).join("")||'<tr><td colspan="5" class="muted">No filled trades</td></tr>'}</tbody></table>`;
+    return `<tr class="bt-k${k===BT.k?" sel":""}" data-k="${k}" tabindex="0"><td>${k} of 9${k===c.minExtras?' <span class="tag good">your setting</span>':""}</td><td class="r num">${s.n}</td><td class="r num">${pct(s.tp1)}</td><td class="r num ${pnlCls(s.net)}">${money(s.net)}</td><td class="r num ${pnlCls(s.netR)}">${rTxt(s.netR)}</td><td class="r num">${pfTxt(s)}</td><td class="r num">${money(-s.dd)}</td></tr>`;}).join("");
+  const grp=(title,rows)=>`<table><thead><tr><th>${title}</th><th class="r">Trades</th><th class="r">Reached TP1</th><th class="r">Net per 0.01 lot</th><th class="r">Avg</th></tr></thead><tbody>
+    ${rows.map(g=>`<tr><td>${esc(g.k)}</td><td class="r num">${g.s.n}</td><td class="r num">${pct(g.s.tp1)}</td><td class="r num ${pnlCls(g.s.net)}">${money(g.s.net)}</td><td class="r num">${rTxt(g.s.avgR)}</td></tr>`).join("")||'<tr><td colspan="5" class="muted">No filled trades</td></tr>'}</tbody></table>`;
   const P=t=>BT.mode==="A"?t.pA:t.pB;
-  const lab={win:"TP1 hit",loss:"Stopped",timeout:"Closed after 4h",missed:"Missed",expired:"Expired",open:"Still open"};
   const list=trades.slice().reverse().slice(0,150);
-  const warn=st.n<30?`<p class="bt-warn">Only ${st.n} filled trades. That's too few to judge the strategy; try a longer period or fewer required extras.</p>`:"";
+  const warn=st.n<30?`<p class="bt-warn">Only ${st.n} filled trades. That's too few to judge the strategy; try a longer period or fewer required confluences.</p>`:"";
   el.innerHTML=`
-    <p class="small muted">${BT.days} days to ${when(rep.end)}. Targets $${fmt(c.t1)} and $${fmt(c.t2)}, max stop $${fmt(c.maxRisk)}, ${BT.mode==="A"?"full exit at TP1":"half at TP1 then runner to TP2"}, $${fmt(BT.spread)} cost per trade. Profit is per 0.01 lot (1 oz); multiply by 100 for a standard lot.</p>
+    <p class="small muted">${BT.days} days to ${when(rep.end)}. Entry at the middle of each range, targets $${fmt(c.t1)} / $${fmt(c.t2)} / $${fmt(c.t3)}, max stop $${fmt(c.maxRisk)}, ${BT.mode==="A"?"everything closed at TP1":"a third closed at each target with the stop moved to entry after TP1"}, $${fmt(BT.spread)} cost per trade. Profit is per 0.01 lot (1 oz); multiply by 100 for a standard lot.</p>
     ${warn}
     <div class="bt-tiles">
-      ${tile("Filled trades",st.n)}${tile("Win rate",pct(st.wr))}${tile("Net profit per 0.01 lot",money(st.net),pnlCls(st.net))}
-      ${tile("Net result",rTxt(st.netR),pnlCls(st.netR))}${tile("Profit factor",isFinite(st.pf)?st.pf.toFixed(2):st.pf===Infinity?"∞":"—")}
-      ${tile("Average trade",money(st.avg),pnlCls(st.avg))}${tile("Max drawdown",money(-st.dd),st.dd>0?"dn":"")}${tile("Longest losing run",st.streak)}
+      ${tile("Filled trades",st.n)}${tile("Reached TP1",pct(st.tp1))}${tile("Reached TP2",pct(st.tp2))}${tile("Reached TP3",pct(st.tp3))}
+      ${tile("Net profit per 0.01 lot",money(st.net),pnlCls(st.net))}${tile("Net result",rTxt(st.netR),pnlCls(st.netR))}
+      ${tile("Profit factor",pfTxt(st))}${tile("Average heat taken",money(st.heat))}${tile("Max drawdown",money(-st.dd),st.dd>0?"dn":"")}${tile("Longest losing run",st.streak)}
     </div>
     <h3 style="margin-top:22px">Equity curve</h3><div id="btChart"></div>
     <div class="bt-grid">
-      <div><h3>Strictness</h3><p class="small muted">Same period at each A-grade threshold. Select a row to see its details.</p>
-        <div class="tblwrap"><table><thead><tr><th>Extras needed</th><th class="r">Trades</th><th class="r">Win rate</th><th class="r">Net</th><th class="r">Net R</th><th class="r">PF</th><th class="r">Max DD</th></tr></thead><tbody>${thr}</tbody></table></div></div>
+      <div><h3>Strictness</h3><p class="small muted">Same period at each confluence threshold. Select a row to see its details.</p>
+        <div class="tblwrap"><table><thead><tr><th>Confluences needed</th><th class="r">Trades</th><th class="r">TP1</th><th class="r">Net</th><th class="r">Net R</th><th class="r">PF</th><th class="r">Max DD</th></tr></thead><tbody>${thr}</tbody></table></div></div>
       <div><h3>By session</h3><div class="tblwrap">${grp("Session",btGroup(trades,BT.mode,t=>t.sess))}</div>
         <h3 style="margin-top:18px">By direction</h3><div class="tblwrap">${grp("Side",btGroup(trades,BT.mode,t=>t.dir===1?"Buys":"Sells"))}</div>
-        <p class="small muted" style="margin-top:10px">${st.missed} signals ran to target without filling and ${st.expired} expired unfilled.</p></div>
+        <p class="small muted" style="margin-top:10px">${st.missed} signals ran to TP1 without reaching the middle of the range, and ${st.expired} expired unfilled after 60 minutes.</p></div>
     </div>
     <div class="chart-head" style="margin-top:22px"><h3 style="margin:0">Trades</h3><button type="button" id="btCsv">Download CSV</button></div>
-    <div class="tblwrap bt-trades"><table><thead><tr><th>Signal</th><th>Side</th><th class="r">Entry</th><th class="r">SL</th><th class="r">TP1</th><th class="r">TP2</th><th class="r">Extras</th><th>Result</th><th class="r">P/L per 0.01 lot</th></tr></thead><tbody>
-      ${list.map(t=>{const p=P(t);return `<tr class="${p==null?"dim":""}"><td>${when(t.T)}</td><td class="${t.dir===1?"up":"dn"}">${t.dir===1?"Buy":"Sell"}</td><td class="r num">${fmt(t.entry)}</td><td class="r num">${fmt(t.sl)}</td><td class="r num">${fmt(t.tp1)}</td><td class="r num">${fmt(t.tp2)}</td><td class="r num">${t.bonus}</td><td><span class="pill ${t.status==="win"?"win":t.status==="loss"?"loss":""}">${lab[t.status]||t.status}</span></td><td class="r num ${pnlCls(p)}">${p==null?"—":money(p)}</td></tr>`;}).join("")||'<tr><td colspan="9" class="muted">No signals at this threshold.</td></tr>'}
+    <div class="tblwrap bt-trades"><table><thead><tr><th>Signal</th><th>Side</th><th class="r">Entry range</th><th class="r">SL</th><th class="r">TP1 / 2 / 3</th><th class="r">Conf.</th><th>Result</th><th class="r">Heat</th><th class="r">P/L per 0.01 lot</th></tr></thead><tbody>
+      ${list.map(t=>{const p=P(t);return `<tr class="${p==null?"dim":""}"><td>${when(t.T)}</td><td class="${t.dir===1?"up":"dn"}">${t.dir===1?"Buy":"Sell"}</td><td class="r num">${fmt(t.lo)} to ${fmt(t.hi)}</td><td class="r num">${fmt(t.sl)}</td><td class="r num">${tpList(t).map(fmt).join(" / ")}</td><td class="r num">${t.bonus}</td><td><span class="pill ${t.hit>0?"win":t.status==="loss"?"loss":""}">${STATUS_LABEL[t.status]||t.status}</span></td><td class="r num">${t.mae!=null?money(t.mae):"—"}</td><td class="r num ${pnlCls(p)}">${p==null?"—":money(p)}</td></tr>`;}).join("")||'<tr><td colspan="9" class="muted">No signals at this threshold.</td></tr>'}
     </tbody></table></div>
-    <p class="small muted" style="margin-top:12px">How this is tested: the live engine runs on each closed 1m candle using only data available at that moment. A limit entry fills when price touches it. If the stop and target are both hit inside the same minute, the stop is counted. Trades still open after 4 hours are closed at market. One trade at a time. PAXG candles stand in for spot gold, so real fills and spreads at your broker will differ. Past results don't guarantee future ones.</p>`;
+    <p class="small muted" style="margin-top:12px">How this is tested: zones and trend are rebuilt every 5 minutes and the confluence check runs every minute, using only data available at that moment. The order rests at the middle of the entry range for 60 minutes. If the stop and a target are both hit inside the same minute, the stop is counted. Heat is the furthest price moved against the entry before the trade finished. Trades still open after 4 hours close at market. PAXG candles stand in for spot gold, so real fills and spreads at your broker will differ. Past results don't guarantee future ones.</p>`;
   el.querySelectorAll("tr.bt-k").forEach(r=>{const go=()=>{BT.k=+r.dataset.k;renderBacktest();};r.onclick=go;r.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}};});
   $("#btCsv").onclick=()=>btCsv(trades);
   drawEquity(st.curve);
@@ -1039,16 +1042,15 @@ function drawEquity(curve){
     grid:{vertLines:{color:"rgba(255,255,255,0.03)"},horzLines:{color:"rgba(255,255,255,0.04)"}},
     rightPriceScale:{borderColor:"rgba(63,216,255,0.2)"},timeScale:{borderColor:"rgba(63,216,255,0.2)",timeVisible:true}});
   const up=curve.at(-1).v>=0;
-  const area=BT.chart.addAreaSeries({lineColor:up?"#19e6c1":"#ff3355",topColor:up?"rgba(25,230,193,0.25)":"rgba(255,51,85,0.2)",bottomColor:"rgba(0,0,0,0)",lineWidth:2,
-    priceFormat:{type:"price",precision:2,minMove:0.01}});
-  let lastT=0;const pts=[{time:BT.rep.start+TZ,value:0}];lastT=pts[0].time;
+  const area=BT.chart.addAreaSeries({lineColor:up?"#19e6c1":"#ff3355",topColor:up?"rgba(25,230,193,0.25)":"rgba(255,51,85,0.2)",bottomColor:"rgba(0,0,0,0)",lineWidth:2,priceFormat:{type:"price",precision:2,minMove:0.01}});
+  let lastT=BT.rep.start+TZ;const pts=[{time:lastT,value:0}];
   for(const p of curve){let t=p.t+TZ;if(t<=lastT)t=lastT+1;pts.push({time:t,value:+p.v.toFixed(2)});lastT=t;}
   area.setData(pts);area.createPriceLine({price:0,color:"rgba(127,151,173,0.5)",lineWidth:1,lineStyle:2,axisLabelVisible:false});
   BT.chart.timeScale().fitContent();
 }
 function btCsv(trades){
-  const head=["signal_time_utc","side","entry","stop","tp1","tp2","risk","extras","session","result","pnl_full_tp1","pnl_half_runner"];
-  const rows=trades.map(t=>[new Date(t.T*1000).toISOString(),t.dir===1?"buy":"sell",t.entry.toFixed(2),t.sl.toFixed(2),t.tp1.toFixed(2),t.tp2.toFixed(2),t.risk.toFixed(2),t.bonus,`"${t.sess}"`,t.status,t.pA==null?"":t.pA.toFixed(2),t.pB==null?"":t.pB.toFixed(2)].join(","));
+  const head=["signal_time_utc","side","range_low","range_high","entry_mid","stop","tp1","tp2","tp3","confluences","session","result","targets_hit","heat","pnl_all_at_tp1","pnl_thirds"];
+  const rows=trades.map(t=>[new Date(t.T*1000).toISOString(),t.dir===1?"buy":"sell",t.lo.toFixed(2),t.hi.toFixed(2),t.mid.toFixed(2),t.sl.toFixed(2),t.tp1.toFixed(2),t.tp2.toFixed(2),t.tp3.toFixed(2),t.bonus,`"${t.sess}"`,t.status,t.hit,t.mae!=null?t.mae.toFixed(2):"",t.pA==null?"":t.pA.toFixed(2),t.pB==null?"":t.pB.toFixed(2)].join(","));
   const blob=new Blob([head.join(",")+"\n"+rows.join("\n")],{type:"text/csv"}),a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download=`mmfx-xauusd-backtest-${BT.days}d.csv`;document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
