@@ -102,6 +102,8 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 .hint{font-size:12px;color:var(--muted)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.mustgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}.mustgrid label{display:flex;gap:8px;align-items:center}.mustgrid input{width:auto}
+button.must-t{padding:4px 10px;font-size:12px;white-space:nowrap}
 .rng-sep{font-size:13px;color:var(--muted);margin:0 8px;text-shadow:none}
 input,select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
 .radio{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
@@ -132,6 +134,45 @@ tr.bt-k{cursor:pointer} tr.bt-k.sel td{background:rgba(63,216,255,.09)} tr.bt-k.
 .bt-trades{max-height:460px;overflow:auto}
 .bt-warn{background:rgba(255,51,85,.08);border:1px solid rgba(255,51,85,.35);border-radius:4px;padding:8px 12px;font-size:14px}
 @media (max-width:1000px){.bt-controls{grid-template-columns:1fr}.bt-grid{grid-template-columns:1fr}}
+
+/* next zones + why */
+.why{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.why summary{cursor:pointer;font-size:14px;color:var(--cyan);list-style:none;display:flex;align-items:center;gap:8px}
+.why summary::-webkit-details-marker{display:none}
+.why summary::before{content:"▸";transition:transform .15s}
+.why[open] summary::before{transform:rotate(90deg)}
+.next{border-top:0;padding-top:0;margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:rgba(63,216,255,.04)}
+
+/* exits + ticket */
+.exit-plan{margin:2px 0 12px;font-size:14px}
+.ticket{border:1px solid rgba(63,216,255,.3);border-radius:4px;padding:12px 14px;margin:0 0 14px;background:rgba(63,216,255,.04)}
+.ticket-h{font-family:Michroma,sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+.ticket-h .muted{font-family:"Exo 2",sans-serif;letter-spacing:0;text-transform:none;margin-left:6px}
+.ticket-g{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}
+.ticket-g b{text-align:right;color:#fff}
+.ticket p{margin:8px 0 0}
+tr.sel-row td{background:rgba(63,216,255,.07)}
+
+/* ai base */
+/* AI */
+.ai-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:6px 0 12px}
+.ai-badge{font-family:Michroma,sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border:1px solid rgba(63,216,255,.35);border-radius:3px;color:var(--muted)}
+.ai-badge.on{color:#02121a;background:var(--buy);border-color:var(--buy);box-shadow:0 0 16px rgba(25,230,193,.5)}
+.ai-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+.ai-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+.ai-controls label{display:grid;gap:6px;font-size:13px;color:var(--muted)}
+.ai-bars{display:grid;gap:6px}
+.ai-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 54px;gap:10px;align-items:center;font-size:13px}
+.ai-track{position:relative;height:8px;background:rgba(63,216,255,.07);border-radius:4px}
+.ai-track::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:rgba(127,151,173,.5)}
+.ai-fill{position:absolute;top:0;bottom:0;border-radius:4px}
+.ai-fill.pos{background:var(--buy);box-shadow:0 0 8px rgba(25,230,193,.5)} .ai-fill.neg{background:var(--sell);box-shadow:0 0 8px rgba(255,51,85,.4)}
+.ai-val{text-align:right}
+.ai-chance{color:var(--cyan);font-weight:600;text-shadow:0 0 10px rgba(63,216,255,.4)}
+.filebtn{display:inline-flex;align-items:center;font-family:"Exo 2",sans-serif;font-size:14px;color:var(--text);position:relative;font-weight:600;letter-spacing:.04em;padding:8px 14px;border:1px solid rgba(63,216,255,.35);border-radius:3px;background:rgba(63,216,255,.06);cursor:pointer}
+.filebtn:hover{border-color:var(--cyan);box-shadow:var(--glow)} .filebtn input{position:absolute;opacity:0;width:1px;height:1px}
+.filebtn:focus-within{outline:2px solid var(--cyan);outline-offset:2px}
+@media (max-width:1000px){.ai-grid,.ai-controls{grid-template-columns:1fr}}
 
 /* ===================== Master-Mind FX theme ===================== */
 :root{
@@ -298,13 +339,18 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
       <div class="tblwrap" id="history"></div>
     </div>
   </section>
+  <section class="panel full" id="aiPanel">
+    <h3>AI learning</h3>
+    <p class="small muted">Every setup the scanner sees is tracked as a paper trade. Each win and loss becomes a lesson, the brain retrains itself, and once it proves it beats the confluence rule on setups it has never seen, it starts choosing your signals. Learning is saved in this browser.</p>
+    <div id="aiBody"></div>
+  </section>
   <section class="panel full" id="btPanel">
     <h3>Backtest</h3>
     <p class="small muted">Replays the scalper minute by minute over past candles using your current targets, max stop and broker price match, then shows how every A-grade signal would have played out.</p>
     <div class="bt-controls">
       <label>Period<select id="btDays"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30" selected>Last 30 days</option><option value="60">Last 60 days</option></select></label>
-      <label>Spread and costs per trade ($)<input id="btSpread" type="number" value="0.30" step="0.05" min="0"></label>
-      <label>Trade management<select id="btMode"><option value="B">A third at each target, stop to entry after TP1</option><option value="A">Close everything at TP1</option></select></label>
+      <label>Spread and costs per trade ($)<input id="btSpread" type="number" value="0.35" step="0.01" min="0"></label>
+      <label>Trade management<select id="btMode"><option value="B">A third at each target, stop to entry after TP1</option><option value="C">Half at TP1, half to TP3, stop to entry after TP1</option><option value="A">Close everything at TP1</option></select></label>
       <button type="button" id="btRun" aria-pressed="true">Run backtest</button>
     </div>
     <div id="btProgress" class="bt-progress" hidden><div class="bt-bar"><span id="btBarFill"></span></div><span id="btMsg" class="small"></span></div>
@@ -320,18 +366,24 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 <dialog id="settings">
   <h2>Settings</h2>
   <div class="field">
-    <label>Match your broker's price</label>
-    <span class="hint">Prices and volume come from PAXG/USDT on Binance, which tracks gold but can sit a few dollars away from your broker's XAUUSD. For $6 scalps that gap matters, so line them up here.</span>
-    <label class="radio"><input type="radio" name="off" value="none"><span>Show PAXG prices as they are</span></label>
-    <label class="radio"><input type="radio" name="off" value="manual"><span><b>Use my broker's price</b><br><span class="hint">Type the XAUUSD price your platform shows right now and press Match.</span>
-      <span class="inline" style="margin-top:8px"><input id="brokerPx" type="number" step="0.01" placeholder="e.g. 4012.35"><button type="button" id="matchBtn">Match</button></span>
-      <span class="hint" id="manualInfo"></span></span></label>
-    <label class="radio"><input type="radio" name="off" value="auto"><span><b>Match XAU/USD automatically</b><br><span class="hint">Uses a free Twelve Data key to re-check spot gold every 10 minutes.</span>
+    <label>Match XM Global prices</label>
+    <span class="hint">Live prices come from PAXG/USDT, which tracks gold but sits a few dollars away from XM. Matching lines every level up with your XM MT5 chart.</span>
+    <label class="radio"><input type="radio" name="off" value="auto"><span><b>Match XM and keep it matched (recommended)</b><br><span class="hint">A free Twelve Data key lets it follow spot gold every 10 minutes and keep your XM match on top, so the gap can't drift.</span>
       <input id="tdKey" type="text" autocomplete="off" spellcheck="false" placeholder="Twelve Data API key" style="margin-top:8px"></span></label>
+    <label class="radio"><input type="radio" name="off" value="manual"><span><b>Match XM by hand</b><br><span class="hint">No key needed. Re-match once a day, because the gap drifts slowly.</span></span></label>
+    <label class="radio"><input type="radio" name="off" value="none"><span>Show PAXG prices unadjusted</span></label>
+    <span class="hint" style="margin-top:6px">In XM MT5, open Market Watch, find GOLD and type its <b>Bid</b> price, then press Match.</span>
+    <span class="inline"><input id="brokerPx" type="number" step="0.01" placeholder="XM GOLD bid, e.g. 4012.35"><button type="button" id="matchBtn">Match</button></span>
+    <span class="hint" id="manualInfo"></span>
+  </div>
+  <div class="field">
+    <label for="spread">Your XM gold spread ($)</label>
+    <input id="spread" type="number" min="0" max="5" step="0.01">
+    <span class="hint">Ask minus Bid on GOLD in MT5. For example, Bid 4,012.35 and Ask 4,012.70 is a $0.35 spread. Used for the order ticket, the backtest and the AI's profit figures.</span>
   </div>
   <div class="field">
     <label>Take profits</label>
-    <span class="hint">Dollars from the middle of the entry range.</span>
+    <span class="hint">Dollars from entry: the top of a buy range or the bottom of a sell range. Changing the gaps between targets, or the max stop, restarts the self-tuning comparison.</span>
     <div class="row3">
       <label class="small">TP1 ($)<input id="t1" type="number" min="3" max="20" step="0.5"></label>
       <label class="small">TP2 ($)<input id="t2" type="number" min="3" max="30" step="0.5"></label>
@@ -341,11 +393,16 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
   <div class="field">
     <label for="maxRisk">Largest stop allowed ($)</label>
     <input id="maxRisk" type="number" min="1.5" max="10" step="0.5">
-    <span class="hint">Measured from the worst fill in the entry range. Wider zones are trimmed to fit.</span>
+    <span class="hint">Measured from entry. Wider zones are trimmed so the stop fits.</span>
   </div>
   <div class="field">
     <label for="minExtras">Confluences needed for an A-grade signal</label>
     <select id="minExtras"><option value="3">3 of 9</option><option value="4">4 of 9</option><option value="5">5 of 9</option><option value="6">6 of 9 (stricter)</option><option value="7">7 of 9 (strictest)</option></select>
+  </div>
+  <div class="field">
+    <label>Must-have confluences</label>
+    <span class="hint">Signals are only sent when every ticked item is present. Use the backtest's "Which confluences matter" table to pick these.</span>
+    <div class="mustgrid" id="mustList"></div>
   </div>
   <div class="field">
     <label class="radio" style="border:0;padding:0"><input type="checkbox" id="sound"><span>Play a sound when a new A-grade setup appears</span></label>
@@ -363,8 +420,18 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=(x,d=2)=>(x==null||!isFinite(x))?"—":Number(x).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const fmtK=x=>!isFinite(x)?"—":x>=1e6?(x/1e6).toFixed(2)+"M":x>=1e3?(x/1e3).toFixed(1)+"k":x.toFixed(0);
-const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const nowS=()=>Date.now()/1000;
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}};
+let CLOCK_SKEW=0;
+const nowS=()=>Date.now()/1000+CLOCK_SKEW;
+/* Candle timing depends on knowing the real time, so the clock is synced to Binance's server (your PC clock may be off). */
+let clockT=0;
+async function syncClock(){
+  if(Date.now()/1000-clockT<1800)return;clockT=Date.now()/1000;
+  try{const t0=Date.now(),j=await (await fetch("https://data-api.binance.vision/api/v3/time")).json(),t1=Date.now();
+    if(j&&Number.isFinite(j.serverTime)){const k=(j.serverTime-(t0+t1)/2)/1000;if(Math.abs(k)<12*3600)CLOCK_SKEW=Math.abs(k)>0.5?k:0;}}catch(e){clockT=0;}
+}
+/* the newest 1m candle should be the one forming right now; if it's minutes old the feed is stuck */
+function feedDelay(){const b=S.raw.M1&&S.raw.M1.at(-1);return b?Math.max(0,nowS()-(b.t+60)):Infinity;}
 function ago(t){const s=Math.max(0,nowS()-t);if(s<60)return Math.round(s)+"s ago";if(s<3600)return Math.round(s/60)+"m ago";if(s<86400)return Math.round(s/3600)+"h ago";return Math.round(s/86400)+"d ago";}
 const when=t=>new Date(t*1000).toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"});
 const lastVal=a=>{for(let i=a.length-1;i>=0;i--)if(isFinite(a[i]))return a[i];return NaN;};
@@ -378,13 +445,13 @@ const LIMIT={H1:300,M15:400,M5:500,M1:500};
 const INT={H1:"1h",M15:"15m",M5:"5m",M1:"1m"};
 const EVERY={H1:60,M15:30,M5:15,M1:8};
 const PIVOT_K={H1:3,M15:3,M5:3,M1:2};
-const DEF={t1:6,t2:8,t3:10,maxRisk:4,minExtras:5,sound:true,offMode:"none",manualOff:0,tdKey:""};
+const DEF={spread:0.35,xmAdj:0,manualOffT:0,selfTune:true,smartExit:true,aiMode:"auto",aiMin:60,must:[],t1:6,t2:8,t3:10,maxRisk:4,minExtras:5,sound:true,offMode:"none",manualOff:0,tdKey:""};
 const S={raw:{},last:{},D1:null,rawPrice:null,priceT:0,A:null,tf:"M5",err:null,lastOk:0,wsGen:0,autoOff:null,autoOffT:0,
   log:store.get("xau_scalp_log_v2",[]),cfg:Object.assign({},DEF,store.get("xau_scalp_cfg_v1",{}))};
 if(!S.cfg.t3||S.cfg.t3<S.cfg.t2){S.cfg.t3=Math.max(S.cfg.t2,10);} if(S.cfg.t2>=S.cfg.t3&&S.cfg.t1<S.cfg.t3)S.cfg.t2=+((S.cfg.t1+S.cfg.t3)/2).toFixed(1);
 
 const TZ=-new Date().getTimezoneOffset()*60;
-function offset(){const c=S.cfg; if(c.offMode==="manual")return +c.manualOff||0; if(c.offMode==="auto"&&S.autoOff!=null)return S.autoOff; return 0;}
+function offset(){const c=S.cfg; if(c.offMode==="manual")return +c.manualOff||0; if(c.offMode==="auto")return S.autoOff!=null?S.autoOff+(+c.xmAdj||0):(+c.manualOff||0); return 0;}
 const adj=(b,o)=>({t:b.t,o:b.o+o,h:b.h+o,l:b.l+o,c:b.c+o,v:b.v,bv:b.bv});
 function rawLive(){return (S.rawPrice!=null&&nowS()-S.priceT<60)?S.rawPrice:(S.raw.M1?S.raw.M1.at(-1).c:null);}
 function livePrice(){const r=rawLive();return r==null?null:r+offset();}
@@ -400,6 +467,7 @@ let busy=false;
 async function tick(force){
   if(busy)return; busy=true; let changed=false;
   try{
+    await syncClock();
     for(const tf of TFS){
       if(!force&&S.last[tf]&&nowS()-S.last[tf]<EVERY[tf])continue;
       try{S.raw[tf]=await fetchK(INT[tf],LIMIT[tf]);S.last[tf]=nowS();changed=true;S.err=null;S.lastOk=nowS();}
@@ -410,11 +478,20 @@ async function tick(force){
   }finally{busy=false;}
   if(changed&&TFS.every(t=>S.raw[t]&&S.raw[t].length>100)) runAnalysis(); else renderStatus(),renderHero();
 }
-async function calibrate(){
+/* One spot reading is noisy, so the live gap is the median of the last 5 readings. Spot gold is frozen at weekends while
+   PAXG keeps trading, so no readings are taken then. Readings far from the others are ignored. */
+const median=a=>{const b=[...a].sort((x,y)=>x-y),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;};
+async function calibrate(force){
+  if(session(nowS()).closed&&!force){S.autoOffT=nowS();const H=store.get("xau_offhist",[]);if(H.length){S.autoOff=median(H.map(x=>x.g));return;}if(S.autoOff!=null)return;}
   S.autoOffT=nowS();
   try{
     const j=await (await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${encodeURIComponent(S.cfg.tdKey)}`)).json();
-    const r=rawLive(); if(j&&isFinite(+j.price)&&r!=null){S.autoOff=+j.price-r; S.calErr=null;}
+    const r=rawLive(),g=j&&+j.price-r;
+    if(j&&isFinite(+j.price)&&r!=null&&Math.abs(g)<100){
+      const H=S.offHist=(S.offHist||store.get("xau_offhist",[])).filter(x=>nowS()-x.t<6*3600);
+      if(H.length>=3&&Math.abs(g-median(H.map(x=>x.g)))>3)S.calErr=null;
+      else{H.push({t:nowS(),g});while(H.length>5)H.shift();store.set("xau_offhist",H);}
+      S.autoOff=median(H.length?H.map(x=>x.g):[g]);S.calErr=null;}
     else S.calErr="Twelve Data: "+((j&&j.message)||"no price returned");
   }catch(e){S.calErr="Couldn't reach Twelve Data to match XAU/USD.";}
 }
@@ -508,20 +585,36 @@ function roomFrom(entry,dir,zones,self){
   const opp=zones.filter(z=>z!==self&&(dir===1?z.lo>entry+0.5:z.hi<entry-0.5)).sort((a,b)=>dir===1?a.lo-b.lo:b.hi-a.hi)[0];
   return opp?(dir===1?opp.lo-0.3-entry:entry-(opp.hi+0.3)):Infinity;
 }
-/* Trade plan for a zone. The entry RANGE is the zone itself, trimmed so that a fill at the near edge (worst price)
-   never risks more than the max stop. Stop sits just beyond the far edge. Targets are measured from the middle of
-   the range and pulled in if an opposing zone sits in the way. */
-function plan(z,side,H){
-  const c=S.cfg,buf=Math.max(0.5,0.1*H.atr.M5),sl=side===1?z.lo-buf:z.hi+buf;
-  let near=side===1?z.hi:z.lo,far=side===1?z.lo:z.hi;
+/* price where the next opposing zone starts (targets stop $0.30 short of it); null when nothing is in the way */
+function oppEdge(ref,dir,zones,self){
+  const opp=zones.filter(z=>z!==self&&(dir===1?z.lo>ref+0.5:z.hi<ref-0.5)).sort((a,b)=>dir===1?a.lo-b.lo:b.hi-a.hi)[0];
+  return opp?(dir===1?opp.lo-0.3:opp.hi+0.3):null;
+}
+/* Trade geometry for a zone. g = the zone and its surroundings, v = the trade version (targets, entry depth, extra stop).
+   The entry RANGE is the zone, trimmed so a fill at its near edge never risks more than the max stop. The order sits at the
+   near edge, or deeper into the range when the version says so. Targets are measured from the entry and stop short of the
+   next opposing zone. */
+function geom(g,v,c){
+  const side=g.dir,sl=side===1?g.zlo-g.buf-v.stopX:g.zhi+g.buf+v.stopX;
+  let near=side===1?g.zhi:g.zlo,far=side===1?g.zlo:g.zhi;
   if(side*(near-sl)>c.maxRisk)near=sl+side*c.maxRisk;
   if(side*(far-sl)<1)far=sl+side;
   if(side*(near-far)<0.4)near=far+side*0.4;
-  const lo=Math.min(near,far),hi=Math.max(near,far),mid=(lo+hi)/2;
-  const room=roomFrom(mid,side,H.zones,z);
-  const tp=[c.t1,c.t2,c.t3].map(d=>mid+side*Math.min(d,Math.max(room,c.t1)));
-  return {z,side,lo,hi,near,far,mid,sl,risk:Math.abs(mid-sl),worst:Math.abs(near-sl),
-    tp1:tp[0],tp2:tp[1],tp3:tp[2],room,tradable:room>=c.t1,withTrend:side===H.dir};
+  const lo=Math.min(near,far),hi=Math.max(near,far),mid=(lo+hi)/2,entry=near-side*v.depth*(hi-lo);
+  const room=g.opp==null?Infinity:side*(g.opp-entry),risk=Math.abs(entry-sl);
+  const tp=[v.t1,v.t2,v.t3].map(d=>entry+side*Math.min(d,Math.max(room,v.t1)));
+  return {lo,hi,near,far,mid,entry,sl,risk,worst:risk,tp1:tp[0],tp2:tp[1],tp3:tp[2],room,tradable:room>=v.t1&&risk<=c.maxRisk+1e-9};
+}
+/* the trade version in use: your settings, or the self-tuned version once it has proven itself */
+function eff(){
+  const c=S.cfg,T=typeof AI!=="undefined"&&AI.state&&AI.state.tune;
+  if(c.selfTune!==false&&T&&T.proven&&T.best&&T.sig===gapSig())return {...T.best,tuned:true};
+  return {t1:c.t1,t2:c.t2,t3:c.t3,depth:0,stopX:0,tuned:false};
+}
+function plan(z,side,H){
+  const g={dir:side,zlo:z.lo,zhi:z.hi,buf:Math.max(0.5,0.1*H.atr.M5)};
+  g.opp=oppEdge(side===1?z.hi:z.lo,side,H.zones,z);
+  return {z,side,g,...geom(g,eff(),S.cfg),withTrend:side===H.dir};
 }
 
 /* ---------- session ---------- */
@@ -538,6 +631,10 @@ function session(t){
 /* ---------- signal evaluation ---------- */
 /* Scores the next with-trend zone price is pulling back into. A signal fires BEFORE price reaches the level,
    once price is within the approach distance and enough confluence lines up, so the limit orders sit on the level. */
+const CONF=[{key:"h1",name:"1H structure agrees"},{key:"strong",name:"Strong zone"},{key:"key",name:"Key level or round number"},
+  {key:"vwap",name:"Right side of VWAP"},{key:"fresh",name:"Fresh zone, untested 2h"},{key:"session",name:"London or New York hours"},
+  {key:"rsi",name:"Stretched pullback (RSI)"},{key:"vol",name:"Pullback on lighter volume"},{key:"room",name:"Full room to TP3"}];
+const mustMask=()=>CONF.reduce((m,cf,k)=>(S.cfg.must||[]).includes(cf.key)?m|(1<<k):m,0);
 function approachDist(H){return Math.max(3,0.5*H.atr.M15);}
 function evalZone(H,ctx){
   const {dir,zones,atr}=H,c=S.cfg;if(!dir)return {stage:"nobias"};
@@ -545,7 +642,7 @@ function evalZone(H,ctx){
   const plans=zones.filter(z=>dir===1?z.lo<price:z.hi>price).map(z=>plan(z,dir,H))
     .filter(p=>dir*(price-p.sl)>0).sort((a,b)=>dir===1?b.hi-a.hi:a.lo-b.lo);
   const p=plans[0];if(!p)return {stage:"nozone"};
-  const dist=Math.max(0,dir===1?price-p.near:p.near-price),ad=approachDist(H);
+  const dist=Math.max(0,dir===1?price-p.entry:p.entry-price),ad=approachDist(H);
   // zone tested recently? any 1m bar overlapping the range in the last 2 hours (excluding the last 3 minutes of approach)
   let tested=false;for(let j=Math.max(0,i-120);j<=i-3;j++){const b=m1[j];if(b.l<=p.hi&&b.h>=p.lo){tested=true;break;}}
   let broken=false;for(let j=Math.max(0,i-30);j<=i;j++){if(dir*(m1[j].c-p.sl)<=0){broken=true;break;}}
@@ -558,22 +655,25 @@ function evalZone(H,ctx){
     {req:true,ok:true,label:`15m structure ${dir===1?"bullish":"bearish"} and price ${dir===1?"above":"below"} the 5m EMA 200`},
     {req:true,ok:!sess.closed,label:sess.closed?"Gold market is closed":"Gold market is open"},
     {req:true,ok:true,label:`Proven ${side} zone (${z.touches} touch${z.touches>1?"es":""}${z.tags.length?", key level":""})`},
-    {req:true,ok:p.worst<=c.maxRisk+1e-9,label:`Stop is $${fmt(p.worst)} from the worst fill (max $${fmt(c.maxRisk)})`},
-    {req:true,ok:p.tradable,label:isFinite(p.room)?`$${fmt(p.room)} of room to the next opposing zone (need $${fmt(c.t1)})`:"Clear room to all targets"},
+    {req:true,ok:p.worst<=c.maxRisk+1e-9,label:`Stop is $${fmt(p.worst)} from entry (max $${fmt(c.maxRisk)})`},
+    {req:true,ok:p.room>=eff().t1,label:isFinite(p.room)?`$${fmt(p.room)} of room to the next opposing zone (need $${fmt(eff().t1)})`:"Clear room to all targets"},
     {req:true,ok:!broken,label:broken?"Zone was broken in the last 30 minutes":"Zone is intact"},
-    {req:false,ok:H.st.H1.trend===dir,label:"1H structure agrees"},
-    {req:false,ok:z.touches>=3||z.tfs.includes("H1"),label:"Strong zone (3+ touches or a 1H swing)"},
-    {req:false,ok:!!keyTxt,label:keyTxt?`Key level inside: ${keyTxt}`:"Key level or round number inside"},
-    {req:false,ok:isFinite(H.vwap)&&dir*(price-H.vwap)>0,label:`Price ${dir===1?"above":"below"} today's VWAP`},
-    {req:false,ok:!tested,label:tested?"Zone was already tested in the last 2 hours":"Fresh zone, untested for 2+ hours"},
-    {req:false,ok:sess.active,label:sess.active?`Active session: ${sess.name}`:"Outside London and New York hours"},
-    {req:false,ok:dir===1?r<=40:r>=60,label:`Pullback stretched, 1m RSI ${isFinite(r)?r.toFixed(0):"—"}`},
-    {req:false,ok:isFinite(vRatio)&&vRatio<0.85,label:`Pullback on lighter volume (${isFinite(vRatio)?vRatio.toFixed(2):"—"}x)`},
-    {req:false,ok:p.room>=c.t3,label:`Full room to TP3 ($${fmt(c.t3)})`}
+    {key:"h1",req:false,ok:H.st.H1.trend===dir,label:"1H structure agrees"},
+    {key:"strong",req:false,ok:z.touches>=3||z.tfs.includes("H1"),label:"Strong zone (3+ touches or a 1H swing)"},
+    {key:"key",req:false,ok:!!keyTxt,label:keyTxt?`Key level inside: ${keyTxt}`:"Key level or round number inside"},
+    {key:"vwap",req:false,ok:isFinite(H.vwap)&&dir*(price-H.vwap)>0,label:`Price ${dir===1?"above":"below"} today's VWAP`},
+    {key:"fresh",req:false,ok:!tested,label:tested?"Zone was already tested in the last 2 hours":"Fresh zone, untested for 2+ hours"},
+    {key:"session",req:false,ok:sess.active,label:sess.active?`Active session: ${sess.name}`:"Outside London and New York hours"},
+    {key:"rsi",req:false,ok:dir===1?r<=40:r>=60,label:`Pullback stretched, 1m RSI ${isFinite(r)?r.toFixed(0):"—"}`},
+    {key:"vol",req:false,ok:isFinite(vRatio)&&vRatio<0.85,label:`Pullback on lighter volume (${isFinite(vRatio)?vRatio.toFixed(2):"—"}x)`},
+    {key:"room",req:false,ok:p.room>=eff().t3,label:`Full room to TP3 ($${fmt(eff().t3)})`}
   ];
-  const extras=checks.filter(x=>!x.req),bonus=extras.filter(x=>x.ok).length,reqOk=checks.filter(x=>x.req).every(x=>x.ok);
+  const must=c.must||[];for(const x of checks)if(x.key&&must.includes(x.key))x.must=true;
+  const extras=checks.filter(x=>!x.req),bonus=extras.filter(x=>x.ok).length,baseOk=checks.filter(x=>x.req).every(x=>x.ok);
+  const reqOk=baseOk&&extras.every(x=>!x.must||x.ok);
+  let flags=0;CONF.forEach((cf,k)=>{const x=extras.find(e=>e.key===cf.key);if(x&&x.ok)flags|=1<<k;});
   const near=dist<=ad;
-  return {stage:near?"setup":"approach",plan:p,dist,ad,checks,bonus,total:extras.length,reqOk,
+  return {stage:near?"setup":"approach",plan:p,dist,ad,checks,bonus,total:extras.length,reqOk,baseOk,flags,rsiNow:r,vRatio,
     grade:near&&reqOk&&bonus>=c.minExtras?"A":"B",id:`${dir}-${Math.round(p.mid*2)/2}`};
 }
 
@@ -599,14 +699,14 @@ function runAnalysis(){
   const rng=Math.max(30,8*A.atr.M15);
   A.buys=A.zones.filter(z=>z.mid<price&&price-z.mid<rng).sort((a,b)=>b.mid-a.mid).slice(0,4).map(z=>plan(z,1,A));
   A.sells=A.zones.filter(z=>z.mid>price&&z.mid-price<rng).sort((a,b)=>a.mid-b.mid).slice(0,4).map(z=>plan(z,-1,A));
-  S.A=A;recordSignal(A);updateOutcomes();renderAll();
+  aiApply(A);S.A=A;recordSignal(A);updateOutcomes();renderAll();
 }
 
 /* ---------- trade simulation (shared by live tracking and the backtest) ---------- */
-/* Order rests at the middle of the entry range for 60 minutes. Stop is checked before targets inside a candle.
+/* The trade fills the moment price touches the entry range (at its near edge) within 60 minutes. Stop is checked before targets inside a candle.
    Mode A: everything closes at TP1. Mode B: a third closes at each target and the stop moves to entry after TP1. */
 function simZone(s,bars,j0,maxHold=240,expiry=60){
-  const d=s.dir,e=s.mid,tp=[s.tp1,s.tp2,s.tp3],risk=Math.abs(e-s.sl);
+  const d=s.dir,e=s.entry??(d===1?s.hi:s.lo),tp=[s.tp1,s.tp2,s.tp3],risk=Math.abs(e-s.sl);
   let fill=-1,j=j0;
   for(;j<bars.length;j++){const b=bars[j];
     if(j-j0>=expiry)return {status:"expired",endJ:j,hit:0};
@@ -614,49 +714,63 @@ function simZone(s,bars,j0,maxHold=240,expiry=60){
     if(d===1?b.h>=s.tp1:b.l<=s.tp1)return {status:"missed",endJ:j,hit:0};
   }
   if(fill<0)return {status:"pending",endJ:bars.length-1,hit:0};
-  let stop=s.sl,hit=0,A=null,B=0,endA=-1,mae=0;
+  let stop=s.sl,hit=0,A=null,B=0,C=0,endA=-1,mae=0;
   for(j=fill;j<bars.length;j++){const b=bars[j],held=j-fill;
     mae=Math.max(mae,d===1?e-b.l:b.h-e);
     if(d===1?b.l<=stop:b.h>=stop){
-      if(hit===0){A=-risk;B=-risk;endA=j;return {status:"loss",fill,endJ:j,endA,hit,A,B,mae:Math.min(mae,risk),risk};}
-      B+=(1-hit/3)*d*(stop-e);return {status:"tp"+hit,fill,endJ:j,endA,hit,A,B,mae,risk};
+      if(hit===0){A=-risk;B=-risk;C=-risk;endA=j;return {status:"loss",fill,endJ:j,endA,hit,A,B,C,mae:Math.min(mae,risk),risk};}
+      B+=(1-hit/3)*d*(stop-e);C+=0.5*d*(stop-e);return {status:"tp"+hit,fill,endJ:j,endA,hit,A,B,C,mae,risk};
     }
     if(j>fill){
-      while(hit<3&&(d===1?b.h>=tp[hit]:b.l<=tp[hit])){hit++;B+=Math.abs(tp[hit-1]-e)/3;if(hit===1){A=Math.abs(s.tp1-e);endA=j;stop=e;}}
-      if(hit===3)return {status:"tp3",fill,endJ:j,endA,hit,A,B,mae,risk};
+      while(hit<3&&(d===1?b.h>=tp[hit]:b.l<=tp[hit])){hit++;B+=Math.abs(tp[hit-1]-e)/3;if(hit===1){A=Math.abs(s.tp1-e);C=A/2;endA=j;stop=e;}if(hit===3)C+=Math.abs(tp[2]-e)/2;}
+      if(hit===3)return {status:"tp3",fill,endJ:j,endA,hit,A,B,C,mae,risk};
     }
     if(held>=maxHold){const px=d*(b.c-e);
-      if(hit===0){A=B=px;endA=j;}else B+=(1-hit/3)*px;
-      return {status:hit?"tp"+hit:"timeout",fill,endJ:j,endA,hit,A,B,mae,risk};}
+      if(hit===0){A=B=C=px;endA=j;}else{B+=(1-hit/3)*px;C+=0.5*px;}
+      return {status:hit?"tp"+hit:"timeout",fill,endJ:j,endA,hit,A,B,C,mae,risk};}
   }
-  return {status:hit?"running":"live",fill,endJ:bars.length-1,endA,hit,A,B,mae,risk};
+  return {status:hit?"running":"live",fill,endJ:bars.length-1,endA,hit,A,B,C,mae,risk};
 }
 
 /* ---------- signals ---------- */
 const OPEN=["pending","live","running"];
 const isOpen=s=>OPEN.includes(s.status);
-const activeSignal=()=>S.log.filter(isOpen).at(-1)||null;
-function recentSame(log,dir,mid,t){return log.some(s=>s.dir===dir&&Math.abs(s.mid-mid)<1.5&&t-s.t<4*3600);}
+const activeSignal=()=>S.log.filter(x=>x.status==="pending"||x.status==="live").at(-1)||S.log.filter(isOpen).at(-1)||null;
+const NO_TRADE=["missed","expired","dismissed"];
+function recentSame(log,dir,mid,t){return log.some(s=>s.dir===dir&&Math.abs(s.mid-mid)<1.5&&t-s.t<4*3600&&!NO_TRADE.includes(s.status));}
 function recordSignal(A){
   const e=A.ev;if(!e||e.stage!=="setup"||e.grade!=="A")return;
-  if(S.log.some(isOpen)||recentSame(S.log,A.dir,e.plan.mid,A.t))return;
+  if(nowS()-S.lastOk>120||nowS()-S.last.M1>120||feedDelay()>180)return;
+  if(S.log.some(x=>x.status==="pending"||x.status==="live")||recentSame(S.log,A.dir,e.plan.mid,A.t))return;
   const p=e.plan;
-  const s={id:e.id+"-"+Math.round(A.t),t:Math.floor(A.t/60)*60,created:nowS(),dir:A.dir,lo:p.lo,hi:p.hi,mid:p.mid,sl:p.sl,
+  const s={id:e.id+"-"+Math.round(A.t),t:Math.floor(A.t/60)*60,created:nowS(),dir:A.dir,lo:p.lo,hi:p.hi,mid:p.mid,entry:p.entry,sl:p.sl,
     tp1:p.tp1,tp2:p.tp2,tp3:p.tp3,risk:p.risk,worst:p.worst,off:A.off,zone:{lo:p.z.lo,hi:p.z.hi},
-    bonus:e.bonus,total:e.total,checks:e.checks,status:"pending",hit:0};
+    bonus:e.bonus,total:e.total,aiP:Number.isFinite(e.aiP)?e.aiP:null,exit:e.exit&&smartExitsOn()?{pick:e.exit.pick,p1:r3(e.exit.p1),p2:r3(e.exit.p2),p3:r3(e.exit.p3)}:null,tuned:eff().tuned?vName(eff()):null,checks:e.checks,status:"pending",hit:0};
   S.log.push(s);if(S.log.length>300)S.log=S.log.slice(-300);store.set("xau_scalp_log_v2",S.log);alertSignal(s);
+}
+const staleQueue=new Set();let staleBusy=false;
+async function resolveStale(){
+  if(staleBusy||!staleQueue.size)return;staleBusy=true;
+  try{for(const id of [...staleQueue]){const s=S.log.find(x=>x.id===id);staleQueue.delete(id);if(!s||!isOpen(s))continue;
+    try{const raw=await fetchRange("1m",60,s.t,Math.min(Math.floor(nowS()/60)*60,s.t+6*3600),()=>{});
+      const r=simZone(s,raw.map(b=>adj(b,s.off||0)),0);
+      s.status=(r.status==="pending"||r.status==="live"||r.status==="running")&&nowS()-s.t>6*3600?(r.hit?"tp"+r.hit:r.status==="live"?"timeout":"expired"):r.status;
+      s.hit=r.hit;}catch(e){}}
+    store.set("xau_scalp_log_v2",S.log);renderAll();}
+  finally{staleBusy=false;}
 }
 function updateOutcomes(){
   const raw=S.raw.M1;if(!raw)return;let dirty=false;
   for(const s of S.log){
     if(!isOpen(s))continue;
+    if(s.t<raw[0].t){staleQueue.add(s.id);continue;}
     const bars=raw.map(b=>adj(b,s.off||0)),j0=bars.findIndex(b=>b.t>=s.t);
     if(j0<0)continue;
     const r=simZone(s,bars,j0);
     if(r.status!==s.status||r.hit!==s.hit){s.status=r.status;s.hit=r.hit;s.fillT=r.fill>=0&&bars[r.fill]?bars[r.fill].t:null;dirty=true;}
-    if(s.status==="pending"&&nowS()-s.created>3600){s.status="expired";dirty=true;}
   }
   if(dirty)store.set("xau_scalp_log_v2",S.log);
+  if(staleQueue.size)resolveStale();
 }
 
 /* ---------- alerts ---------- */
@@ -687,46 +801,64 @@ function renderPrice(){
 }
 function renderStatus(){
   const dot=$("#dot"),ban=$("#banner");
-  if(S.err){dot.className="dot err";ban.style.display="block";ban.textContent=S.err;}else{ban.style.display="none";if(S.lastOk)dot.className="dot live";}
-  $("#statusText").textContent=S.lastOk?`Live, updated ${ago(S.lastOk)}`:S.err?"Feed unavailable":"Connecting…";
+  const delayed=S.raw.M1&&feedDelay()>180&&!session(nowS()).closed;
+  if(S.err||delayed){dot.className="dot err";ban.style.display="block";ban.textContent=S.err||`The price feed is ${Math.round(feedDelay()/60)} minutes behind, so signals are paused until it catches up.`;}else{ban.style.display="none";if(S.lastOk)dot.className="dot live";}
+  $("#statusText").textContent=S.lastOk?`Live, updated ${ago(S.lastOk)}${S.cfg.offMode!=="none"&&S.cfg.manualOffT?", XM prices":""}`:S.err?"Feed unavailable":"Connecting…";
   $("#sessionText").textContent=session(nowS()).name;
   const ob=$("#offsetBanner"),c=S.cfg;let msg="";
-  if(c.offMode==="none")msg="Prices shown are PAXG, which can differ from your broker's XAUUSD by a few dollars. Open Settings to match your broker before using these levels.";
-  else if(c.offMode==="auto"&&S.calErr)msg=S.calErr+" Prices are not adjusted until it works.";
+  if(c.offMode==="none"||!c.manualOffT)msg="Prices aren't matched to XM yet. Open Settings and match GOLD to your XM MT5 Bid before using these levels.";
+  else if(c.offMode==="auto"&&S.calErr)msg=S.calErr+" Using your last XM match until it works.";
+  else if(c.offMode==="manual"&&nowS()-c.manualOffT>24*3600)msg=`Your XM match is ${ago(c.manualOffT).replace(" ago","")} old and the gap drifts slowly. Re-match in Settings, or add a Twelve Data key to keep it matched automatically.`;
   ob.style.display=msg?"block":"none";ob.textContent=msg;
 }
 function checksHTML(checks){
-  return `<ul class="checks">${checks.map(c=>`<li class="${c.ok?"ok":"no"}"><span class="mark" aria-hidden="true">${c.ok?"✓":"✕"}</span><span>${esc(c.label)}${c.req?'<span class="req">required</span>':""}</span></li>`).join("")}</ul>`;
+  return `<ul class="checks">${checks.map(c=>`<li class="${c.ok?"ok":"no"}"><span class="mark" aria-hidden="true">${c.ok?"✓":"✕"}</span><span>${esc(c.label)}${c.req?'<span class="req">required</span>':c.must?'<span class="req">your filter</span>':""}</span></li>`).join("")}</ul>`;
 }
+function usedRecently(p){return S.log.some(x=>x.dir===p.side&&Math.abs(x.mid-p.mid)<1.5&&(isOpen(x)||(nowS()-x.t<4*3600&&!NO_TRADE.includes(x.status))));}
 function nextZonesHTML(A){
-  const b=A.buys.find(p=>p.tradable),s=A.sells.find(p=>p.tradable);
+  const pick=list=>{const fresh=list.filter(p=>!usedRecently(p));return fresh.find(p=>p.tradable)||null;};
+  const b=pick(A.buys),s=pick(A.sells);
   const row=(p,label)=>p?`<div class="next-row"><span>${label}${p.withTrend?"":' <span class="muted small">(counter-trend)</span>'}</span><span class="num ${p.side===1?"up":"dn"}">${fmt(p.lo)} to ${fmt(p.hi)}</span></div>
-    <div class="next-row small muted"><span>SL ${fmt(p.sl)}</span><span class="num">TP ${tpList(p).map(fmt).join(" / ")}</span></div>`:"";
-  if(!b&&!s)return "";
-  return `<div class="next">${row(b,"Next buy range")}${row(s,"Next sell range")}</div>`;
+    <div class="next-row small muted"><span>SL ${fmt(p.sl)}</span><span class="num">TP ${tpList(p).map(x=>fmt(x)).join(" / ")}</span></div>`:"";
+  const none=side=>`<div class="next-row small muted"><span>Next ${side} range</span><span>none with $${fmt(S.cfg.t1)} of room nearby</span></div>`;
+  return `<div class="next">${b?row(b,"Next buy range"):none("buy")}${s?row(s,"Next sell range"):none("sell")}</div>`;
 }
 const tpList=s=>[s.tp1,s.tp2,s.tp3].filter((x,k,a)=>k===0||Math.abs(x-a[k-1])>0.05);
 const STATUS_LABEL={pending:"Waiting for fill",live:"In trade",running:"TP1 hit, running",loss:"Stopped",tp1:"TP1 hit",tp2:"TP2 hit",tp3:"TP3 hit",
-  timeout:"Closed after 4h",missed:"Missed",expired:"Expired",dismissed:"Dismissed"};
+  timeout:"Closed after 4h",missed:"Not filled",expired:"Expired",dismissed:"Dismissed"};
+/* MT5 at XM: charts show Bid. Buy orders open on the Ask, so a Buy Limit set the spread above the chart level fills when the
+   chart touches it. Sell positions close on the Ask, so their stop and targets sit the spread above the chart levels. */
+function xmLevels(s){const sp=S.cfg.spread??0.3,en=s.entry??(s.dir===1?s.hi:s.lo);
+  return s.dir===1?{type:"Buy Limit",price:en+sp,sl:s.sl,tps:tpList(s)}:{type:"Sell Limit",price:en,sl:s.sl+sp,tps:tpList(s).map(x=>x+sp)};}
+function xmTicket(s){const x=xmLevels(s),sp=S.cfg.spread??0.3;
+  return `<div class="ticket"><div class="ticket-h">XM MT5 order <span class="muted small">GOLD, spread $${fmt(sp)}</span></div>
+    <div class="ticket-g"><span>${x.type}</span><b class="num">${fmt(x.price)}</b><span>Stop Loss</span><b class="num">${fmt(x.sl)}</b>
+    ${x.tps.map((t,k)=>`<span>Take Profit ${k+1}</span><b class="num">${fmt(t)}</b>`).join("")}</div>
+    <p class="small muted">${s.dir===1?"The Buy Limit sits the spread above the chart level because buys fill on the Ask.":"The stop and targets sit the spread above the chart levels because sells close on the Ask."} Place one order per take-profit with the lot split as the exit plan says.</p></div>`;}
 function signalHTML(s){
-  const p=S.A?S.A.price:null,d=s.dir,R=x=>d*(x-s.mid)/s.risk,dist=x=>`${x-s.mid>=0?"+":"−"}$${fmt(Math.abs(x-s.mid))}`;
+  const en=s.entry??(s.dir===1?s.hi:s.lo),p=S.A?S.A.price:null,d=s.dir,rk=Math.abs(en-s.sl),R=x=>d*(x-en)/rk,dist=x=>`${x-en>=0?"+":"−"}$${fmt(Math.abs(x-en))}`;
   let state;
-  if(s.status==="running")state=`TP${s.hit} hit. Stop is now at entry, ${fmt(s.mid)}, so the rest of the trade is risk-free.`;
+  if(s.status==="running")state=`TP${s.hit} hit. Stop is now at entry, ${fmt(en)}, so the rest of the trade is risk-free.`;
   else if(s.status==="live")state=`Filled. Holding for TP1 at ${fmt(s.tp1)}. Stop ${fmt(s.sl)}.`;
+  else if(p!=null&&d*(p-s.sl)<=0)state=`Price has reached the stop area before filling cleanly. Treat this setup as failed.`;
+  else if(p!=null&&(d===1?p<s.lo:p>s.hi))state=`Price is beyond the entry range, between it and the stop. Only enter if you accept the reduced room to the stop.`;
   else if(p!=null&&(d===1?p<=s.hi:p>=s.lo))state=`Price is inside the entry range now.`;
   else state=`Set ${d===1?"buy":"sell"} limits between ${fmt(s.lo)} and ${fmt(s.hi)}. Price is $${fmt(Math.abs((p??s.hi)-(d===1?s.hi:s.lo)))} away. Cancel if not filled within 60 minutes.`;
   const row=(cls,name,sub,price,note)=>`<div class="lv ${cls}"><div class="lv-name"><b>${name}</b>${sub}</div><div class="lv-price num">${price}<small>${note}</small></div></div>`;
   return `<div class="sig-top"><div class="sig-dir">${d===1?"Buy":"Sell"}</div><div class="grade">A-grade, ${s.bonus} of ${s.total} confluences</div></div>
   <p class="sig-state">${esc(state)}</p>
   <div class="levels">
-    ${row("entry","Entry range",`Ideal ${fmt(s.mid)}, the middle`,`${fmt(s.lo)}<span class="rng-sep">to</span>${fmt(s.hi)}`,`worst fill risks $${fmt(s.worst)}`)}
+    ${row("entry","Entry range",`Order at ${fmt(en)}${Math.abs(en-(d===1?s.hi:s.lo))>0.01?", inside the range":""}`,`${fmt(s.lo)}<span class="rng-sep">to</span>${fmt(s.hi)}`,`stop $${fmt(rk)} from ${fmt(en)}`)}
     ${row("sl","Stop loss","Beyond the zone",fmt(s.sl),`${dist(s.sl)}, −1R`)}
     ${tpList(s).map((x,k)=>row("tp","Take profit "+(k+1),k===0?"Move stop to entry":"",fmt(x),`${dist(x)}, +${R(x).toFixed(1)}R`)).join("")}
   </div>
-  ${tpList(s).length<3?`<p class="small muted">Only ${tpList(s).length===1?"one target fits":"two targets fit"}: the next ${d===1?"resistance":"support"} zone sits $${fmt(Math.abs(s.tp3-s.mid))} from entry, so further targets are capped there.</p>`:""}
-  <div class="meta"><span>Signalled ${when(s.created)}. Status: ${STATUS_LABEL[s.status]||s.status}</span><span>Zone ${fmt(s.zone.lo)} to ${fmt(s.zone.hi)}</span></div>
-  ${checksHTML(s.checks)}
-  <div class="btnrow"><button type="button" id="copyBtn">Copy levels</button><button type="button" id="dismissBtn">Dismiss signal</button></div>`;
+  ${tpList(s).length<3?`<p class="small muted">Only ${tpList(s).length===1?"one target fits":"two targets fit"}: the next ${d===1?"resistance":"support"} zone sits $${fmt(Math.abs(s.tp3-en))} from entry, so further targets are capped there.</p>`:""}
+  ${s.exit?`<p class="exit-plan"><b>Exit plan:</b> ${exitText(s.exit.pick,s)}, stop to entry after TP1. <span class="muted small">Chance of ${["p1","p2","p3"].slice(0,tpList(s).length).map((k,i)=>`TP${i+1} ${Math.round(s.exit[k]*100)}%`).join(", ")}</span></p>`:`<p class="exit-plan"><b>Exit plan:</b> ${exitText(tpList(s).length>1?"B":"A",s)}${tpList(s).length>1?", stop to entry after TP1":""}.</p>`}
+  ${xmTicket(s)}
+  <div class="meta">${s.tuned?`<span>Self-tuned: ${esc(s.tuned)}</span>`:""}${Number.isFinite(s.aiP)?`<span class="ai-chance">AI win chance ${Math.round(s.aiP*100)}%</span>`:""}<span>Signalled ${when(s.created)}. Status: ${STATUS_LABEL[s.status]||s.status}</span><span>Zone ${fmt(s.zone.lo)} to ${fmt(s.zone.hi)}</span></div>
+  <div class="btnrow"><button type="button" id="copyBtn">Copy levels</button><button type="button" id="dismissBtn">Dismiss signal</button></div>
+  ${S.A?nextZonesHTML(S.A):""}
+  <details class="why"${S.whyOpen?" open":""}><summary>Why this signal: ${s.bonus} of ${s.total} confluences</summary>${checksHTML(s.checks||[])}</details>`;
 }
 function watchHTML(A){
   const e=A.ev;let body;
@@ -737,24 +869,27 @@ function watchHTML(A){
   }
   const side=A.dir===1?"buy":"sell";
   body=`<h2>No A-grade setup</h2><p><b class="${A.dir===1?"up":"dn"}">${dirWord(A.dir)}</b> on the 15m with price ${A.dir===1?"above":"below"} the 5m EMA 200, so it's hunting ${side}s only. `;
-  if(e.stage==="nozone")return body+`No proven ${side} zone below price yet.</p>`+nextZonesHTML(A);
+  if(e.stage==="nozone")return body+`No proven ${side} zone ${A.dir===1?"below":"above"} price yet.</p>`+nextZonesHTML(A);
   const p=e.plan,rng=`<span class="num">${fmt(p.lo)} to ${fmt(p.hi)}</span>`;
-  const done=S.log.find(s=>isOpen(s)===false&&s.dir===A.dir&&Math.abs(s.mid-p.mid)<1.5&&A.t-s.t<4*3600);
+  const done=S.log.find(s=>isOpen(s)===false&&!NO_TRADE.includes(s.status)&&s.dir===A.dir&&Math.abs(s.mid-p.mid)<1.5&&A.t-s.t<4*3600);
   if(done)body+=`The ${side} range at ${rng} already signalled recently (${STATUS_LABEL[done.status]||done.status}), so it won't repeat for 4 hours.</p>`;
-  else if(e.stage==="approach")body+=`Next ${side} range is ${rng}, $${fmt(e.dist)} away. `+(e.reqOk&&e.bonus>=S.cfg.minExtras
-      ?`It qualifies with ${e.bonus} of ${e.total} confluences and will signal once price is within $${fmt(e.ad)}.</p>`
+  else if(e.stage==="approach")body+=`Next ${side} range is ${rng}, $${fmt(e.dist)} away. `+(e.reqOk&&(aiDecides()?e.aiP>=S.cfg.aiMin/100:e.bonus>=S.cfg.minExtras)
+      ?`It qualifies${aiDecides()?" with the AI":` with ${e.bonus} of ${e.total} confluences`} and will signal once price is within $${fmt(e.ad)}.</p>`
+      :aiDecides()?`The AI rates it below its ${S.cfg.aiMin}% bar${e.reqOk?"":" and it fails a required check"}, so it won't signal.</p>`
       :`It has ${e.bonus} of ${e.total} confluences${e.reqOk?"":" and fails a required check"}; it needs ${S.cfg.minExtras} to signal.</p>`);
-  else body+=`Price is near the ${side} range at ${rng}, but it has ${e.bonus} of ${e.total} confluences${e.reqOk?"":" and fails a required check"}, so it's skipped.</p>`;
-  return body+checksHTML(e.checks)+nextZonesHTML(A);
+  else body+=`Price is near the ${side} range at ${rng}, but ${aiDecides()?`the AI rates it below ${S.cfg.aiMin}%`:`it has ${e.bonus} of ${e.total} confluences`}${e.reqOk?"":" and it fails a required check"}, so it's skipped.</p>`;
+  return body+(Number.isFinite(e.aiP)?`<p class="ai-chance">AI win chance for this range: ${Math.round(e.aiP*100)}% ${aiDecides()?`(needs ${S.cfg.aiMin}%)`:"(watching only)"}</p>`:"")+nextZonesHTML(A)
+    +`<details class="why"${S.whyOpen?" open":""}><summary>Why: ${e.bonus} of ${e.total} confluences${e.reqOk?"":", a required check fails"}</summary>${checksHTML(e.checks)}</details>`;
 }
+function bindWhy(){const d=document.querySelector('#hero details.why');if(!d)return;d.ontoggle=()=>{S.whyOpen=d.open;};const sm=d.querySelector('summary');if(sm)sm.onclick=()=>{S.whyOpen=!d.open;};}
 function renderHero(){
   const el=$("#hero"),s=activeSignal();
   if(s){el.className="panel hero "+(s.dir===1?"buy":"sell");el.innerHTML=signalHTML(s);
-    $("#copyBtn").onclick=()=>copyText(`XAUUSD ${s.dir===1?"BUY":"SELL"} ${fmt(s.lo)} - ${fmt(s.hi)}\nSL ${fmt(s.sl)}\n`+tpList(s).map((x,k)=>`TP${k+1} ${fmt(x)}`).join("\n"),$("#copyBtn"));
-    $("#dismissBtn").onclick=()=>{s.status="dismissed";store.set("xau_scalp_log_v2",S.log);renderAll();};return;}
+    $("#copyBtn").onclick=()=>{const x=xmLevels(s);copyText(`GOLD ${x.type.toUpperCase()} ${fmt(x.price)}\nEntry range ${fmt(s.lo)} - ${fmt(s.hi)}\nSL ${fmt(x.sl)}\n`+x.tps.map((t,k)=>`TP${k+1} ${fmt(t)}`).join("\n")+`\nExit plan: ${exitText(s.exit?s.exit.pick:"B",s)}`,$("#copyBtn"));};
+    $("#dismissBtn").onclick=()=>{s.status="dismissed";store.set("xau_scalp_log_v2",S.log);renderAll();};bindWhy();return;}
   el.className="panel hero idle";
   if(!S.A){el.innerHTML=S.err?`<h2>Can't load prices</h2><p class="muted">${esc(S.err)}</p>`:`<h2>Loading the market</h2><p class="muted">Pulling 1H, 15m, 5m and 1m candles with volume.</p>`;return;}
-  el.innerHTML=watchHTML(S.A);
+  el.innerHTML=watchHTML(S.A);bindWhy();
 }
 
 function copyText(t,btn){
@@ -809,12 +944,12 @@ function renderZones(){
       `<span class="tag">${p.z.touches} touch${p.z.touches>1?"es":""}${p.z.tfs.length?", "+p.z.tfs.join("/"):""}</span>`,
       p.withTrend?`<span class="tag good">with trend</span>`:A.dir?`<span class="tag">counter-trend</span>`:"",
       p.tradable?"":`<span class="tag">only $${fmt(p.room)} room</span>`].join("");
-    return `<tr class="${p.tradable?"":"dim"}"><td class="r num ${p.side===1?"up":"dn"}" style="font-weight:700">${fmt(p.lo)}<br>${fmt(p.hi)}</td><td class="r num">${fmt(p.sl)}<br><span class="muted small">$${fmt(p.worst)} max</span></td><td class="r num">${tpList(p).map(fmt).join("<br>")}</td><td>${tags}</td></tr>`;};
+    return `<tr class="${p.tradable?"":"dim"}"><td class="r num ${p.side===1?"up":"dn"}" style="font-weight:700">${fmt(p.lo)}<br>${fmt(p.hi)}</td><td class="r num">${fmt(p.sl)}<br><span class="muted small">$${fmt(p.worst)} max</span></td><td class="r num">${tpList(p).map(x=>fmt(x)).join("<br>")}</td><td>${tags}</td></tr>`;};
   el.innerHTML=`<table><thead><tr><th class="r">Entry range</th><th class="r">Stop</th><th class="r">TP1 / 2 / 3</th><th>Why it matters</th></tr></thead><tbody>
     <tr class="sep"><td colspan="4">Sell zones</td></tr>${A.sells.slice().reverse().map(row).join("")||'<tr><td colspan="4" class="muted">None within range</td></tr>'}
     <tr class="sep"><td colspan="4">Price now ${fmt(A.price)}</td></tr>
     <tr class="sep"><td colspan="4">Buy zones</td></tr>${A.buys.map(row).join("")||'<tr><td colspan="4" class="muted">None within range</td></tr>'}
-  </tbody></table><p class="small muted" style="margin-top:10px">Each range is the support or resistance zone itself, trimmed so a fill at its worst edge never risks more than $${fmt(S.cfg.maxRisk)}. Targets are measured from the middle of the range. Greyed rows don't have $${fmt(S.cfg.t1)} of room before the next opposing zone. Only with-trend ranges with enough confluence become signals.</p>`;
+  </tbody></table><p class="small muted" style="margin-top:10px">Each range is the support or resistance zone itself, trimmed so a fill at its worst edge never risks more than $${fmt(S.cfg.maxRisk)}. Targets are measured from the edge price reaches first (the top of a buy range, the bottom of a sell range). Greyed rows don't have $${fmt(S.cfg.t1)} of room before the next opposing zone. Only with-trend ranges with enough confluence become signals.</p>`;
 }
 function renderHistory(){
   const rows=S.log.slice(-15).reverse(),closed=S.log.filter(s=>["loss","tp1","tp2","tp3","timeout"].includes(s.status));
@@ -862,7 +997,7 @@ function drawChart(resetView){
     if(!s){A.buys.slice(0,3).forEach(zl);A.sells.slice(0,3).forEach(zl);}
     const st=A.st[tf];if(st)st.events.slice(-12).forEach(e=>markers.push({time:e.t+TZ,position:e.dir===1?"belowBar":"aboveBar",color:e.dir===1?"#19e6c1":"#ff3355",shape:"circle",text:e.type}));
   }
-  if(s){const L=(price,color,title,w,style=0,lab=true)=>priceLines.push(series.createPriceLine({price,color,lineWidth:w,lineStyle:style,axisLabelVisible:lab,title}));
+  if(s){const sh=o-(s.off||0),L=(price,color,title,w,style=0,lab=true)=>priceLines.push(series.createPriceLine({price:price+sh,color,lineWidth:w,lineStyle:style,axisLabelVisible:lab,title}));
     L(s.hi,"#3fd8ff",s.dir===1?"Entry top":"Entry",2);L(s.lo,"#3fd8ff",s.dir===1?"Entry":"Entry bottom",2);L(s.mid,"rgba(63,216,255,0.6)","",1,1,false);
     L(s.sl,"#ff3355","SL",2);tpList(s).forEach((x,k)=>L(x,"#19e6c1","TP"+(k+1),k?1:2));
     const bar=bars.find(b=>s.t>=b.t&&s.t<b.t+TF_SEC[tf]);
@@ -876,25 +1011,32 @@ function renderAll(){renderPrice();renderStatus();renderHero();renderTrend();ren
 
 /* ---------- settings ---------- */
 const dlg=$("#settings");
-function manualInfo(){const c=S.cfg;$("#manualInfo").textContent=c.offMode==="manual"&&c.manualOff?`Current adjustment ${c.manualOff>=0?"+":"−"}$${fmt(Math.abs(c.manualOff))}`:"";}
+function manualInfo(){const c=S.cfg;$("#manualInfo").textContent=c.offMode!=="none"&&c.manualOffT?`Last matched to XM ${ago(c.manualOffT)}. Current adjustment ${offset()>=0?"+":"−"}$${fmt(Math.abs(offset()))}.`:"";}
 $("#settingsBtn").onclick=()=>{const c=S.cfg;
   dlg.querySelectorAll('input[name="off"]').forEach(r=>r.checked=r.value===c.offMode);
-  $("#tdKey").value=c.tdKey;$("#t1").value=c.t1;$("#t2").value=c.t2;$("#t3").value=c.t3;$("#maxRisk").value=c.maxRisk;$("#minExtras").value=String(c.minExtras);$("#sound").checked=c.sound;
+  $("#tdKey").value=c.tdKey;$("#spread").value=c.spread??0.35;$("#t1").value=c.t1;$("#t2").value=c.t2;$("#t3").value=c.t3;$("#maxRisk").value=c.maxRisk;$("#minExtras").value=String(c.minExtras);$("#sound").checked=c.sound;
+  $("#mustList").innerHTML=CONF.map(cf=>`<label class="small"><input type="checkbox" value="${cf.key}" ${(c.must||[]).includes(cf.key)?"checked":""}> ${cf.name}</label>`).join("");
   $("#brokerPx").value="";manualInfo();dlg.showModal();};
 let pendingManual=null;
 $("#matchBtn").onclick=()=>{const bp=+$("#brokerPx").value,r=rawLive();
-  if(!isFinite(bp)||bp<=0||r==null){$("#manualInfo").textContent="Enter the price from your platform first.";return;}
-  pendingManual=bp-r;dlg.querySelector('input[value="manual"]').checked=true;
-  $("#manualInfo").textContent=`Adjustment set to ${pendingManual>=0?"+":"−"}$${fmt(Math.abs(pendingManual))}. Save to apply.`;};
+  if(!isFinite(bp)||bp<=0||r==null){$("#manualInfo").textContent="Type the GOLD bid from XM MT5 first.";return;}
+  if(Math.abs(bp-r)>100){$("#manualInfo").textContent=`That's $${fmt(Math.abs(bp-r))} away from the live price. Check you typed the GOLD bid.`;return;}
+  pendingManual={bp,raw:r};const sel=dlg.querySelector('input[name="off"]:checked');if(!sel||sel.value==="none")dlg.querySelector('input[value="'+(($("#tdKey").value.trim())?"auto":"manual")+'"]').checked=true;
+  $("#manualInfo").textContent=`Matched: XM ${fmt(bp)} against live ${fmt(r)}. Save to apply.`;};
 $("#closeSettings").onclick=()=>{pendingManual=null;dlg.close();};
 $("#saveSettings").onclick=()=>{
   const mode=(dlg.querySelector('input[name="off"]:checked')||{}).value||"none";
-  let t1=+$("#t1").value||6,t2=+$("#t2").value||8,t3=+$("#t3").value||10;if(t2<t1)t2=t1;if(t3<t2)t3=t2;
-  S.cfg={...S.cfg,offMode:mode,tdKey:$("#tdKey").value.trim(),t1,t2,t3,maxRisk:+$("#maxRisk").value||4,minExtras:+$("#minExtras").value,sound:$("#sound").checked};
-  if(pendingManual!=null)S.cfg.manualOff=pendingManual;pendingManual=null;
+  const num=(id,d,lo,hi)=>{const v=+$(id).value;return Number.isFinite(v)&&v>0?Math.min(hi,Math.max(lo,v)):d;};
+  let t1=num("#t1",6,1,50),t2=num("#t2",8,1,60),t3=num("#t3",10,1,80);if(t2<t1)t2=t1;if(t3<t2)t3=t2;
+  S.cfg={...S.cfg,offMode:mode,tdKey:$("#tdKey").value.trim(),must:[...dlg.querySelectorAll("#mustList input:checked")].map(x=>x.value),t1,t2,t3,maxRisk:num("#maxRisk",4,1.5,20),minExtras:+$("#minExtras").value,sound:$("#sound").checked};
+  S.cfg.spread=num("#spread",0.35,0,5);
+  const pm=pendingManual;pendingManual=null;
+  if(pm){S.cfg.manualOff=pm.bp-pm.raw;S.cfg.manualOffT=nowS();S.cfg.xmAdj=0;}
   store.set("xau_scalp_cfg_v1",S.cfg);dlg.close();
-  if(mode==="auto"&&S.cfg.tdKey){S.autoOffT=0;calibrate().then(()=>S.A&&runAnalysis());}
+  if(mode==="auto"&&S.cfg.tdKey){S.autoOffT=0;S.offHist=[];store.set("xau_offhist",[]);calibrate(true).then(()=>{if(pm&&S.autoOff!=null){S.cfg.xmAdj=pm.bp-(pm.raw+S.autoOff);store.set("xau_scalp_cfg_v1",S.cfg);}if(S.A)runAnalysis();});}
   if(S.A)runAnalysis();
+  if(BT.rep)renderBacktest();
+  scheduleRetrain();
 };
 
 
@@ -930,28 +1072,28 @@ async function btReplay(data,start,off,onProg){
     }
     if(H&&H.dir){
       const ev=evalZone(H,{m1,i,rsiA,price:m1[i].c,t:T});
-      if(ev.stage==="setup"&&ev.reqOk){const p=ev.plan;
-        cands.push({i,T,dir:H.dir,bonus:ev.bonus,lo:p.lo,hi:p.hi,mid:p.mid,sl:p.sl,tp1:p.tp1,tp2:p.tp2,tp3:p.tp3,risk:p.risk,sess:session(T).name});}
+      if(ev.stage==="setup"&&ev.baseOk){const p=ev.plan;
+        cands.push({i,T,dir:H.dir,bonus:ev.bonus,flags:ev.flags,x:features(ev,H.dir,T),g:p.g,lo:p.lo,hi:p.hi,mid:p.mid,entry:p.entry,sl:p.sl,tp1:p.tp1,tp2:p.tp2,tp3:p.tp3,risk:p.risk,sess:session(T).name});}
     }
     if(performance.now()-last>40){onProg((i-iStart)/Math.max(1,m1.length-iStart));await yieldUI();last=performance.now();}
   }
   return {m1,cands,start,end:m1.at(-1).t+60};
 }
-/* Same rules as live: one trade at a time, and the same zone can't signal again in the same direction for 4 hours. */
-function btSimulate(rep,k,spread){
+/* Same rules as live: one trade at risk at a time (a trade whose stop is at entry doesn't block), and the same zone can't signal again in the same direction for 4 hours. */
+function btSimulate(rep,k,spread,mask=mustMask()){
   const out=[];let freeAt=0;
   for(const c of rep.cands){
-    if(c.bonus<k||c.T<freeAt||recentSame(out,c.dir,c.mid,c.T))continue;
+    if(c.bonus<k||(c.flags&mask)!==mask||c.T<freeAt||recentSame(out,c.dir,c.mid,c.T))continue;
     const s={...c,t:c.T},r=simZone(s,rep.m1,c.i+1);
-    freeAt=rep.m1[Math.min(r.endJ,rep.m1.length-1)].t+60;
+    freeAt=rep.m1[Math.min(r.hit>0&&r.endA>=0?r.endA:r.endJ,rep.m1.length-1)].t+60;
     const done=!["pending","live","running"].includes(r.status);
-    out.push({...s,...r,pA:done&&r.A!=null?r.A-spread:null,pB:done&&r.A!=null?r.B-spread:null,
+    out.push({...s,...r,pA:done&&r.A!=null?r.A-spread:null,pB:done&&r.A!=null?r.B-spread:null,pC:done&&r.A!=null?r.C-spread:null,
       exitT:rep.m1[Math.min(r.endJ,rep.m1.length-1)].t+60,exitTA:r.endA>=0?rep.m1[r.endA].t+60:null});
   }
   return out;
 }
 function btStats(trades,mode){
-  const P=t=>mode==="A"?t.pA:t.pB,f=trades.filter(t=>P(t)!=null);
+  const P=t=>mode==="A"?t.pA:mode==="C"?t.pC:t.pB,f=trades.filter(t=>P(t)!=null);
   let eq=0,eqR=0,peak=0,dd=0,streak=0,worst=0,gp=0,gl=0,mae=0;const curve=[];
   const tOf=t=>mode==="A"?t.exitTA:t.exitT;
   for(const t of f.slice().sort((a,b)=>tOf(a)-tOf(b))){
@@ -967,11 +1109,12 @@ function btStats(trades,mode){
     missed:trades.filter(t=>t.status==="missed").length,expired:trades.filter(t=>t.status==="expired").length};
 }
 function btGroup(trades,mode,key){
-  const g={};for(const t of trades){const p=mode==="A"?t.pA:t.pB;if(p==null)continue;const k=key(t);(g[k]=g[k]||[]).push(t);}
+  const g={};for(const t of trades){const p=mode==="A"?t.pA:mode==="C"?t.pC:t.pB;if(p==null)continue;const k=key(t);(g[k]=g[k]||[]).push(t);}
   return Object.entries(g).map(([k,list])=>({k,s:btStats(list,mode)})).sort((a,b)=>b.s.n-a.s.n);
 }
 async function runBacktest(){
   if(BT.running){BT.abort=true;return;}
+  if(AI.busy){$("#btProgress").hidden=false;$("#btMsg").textContent="Wait for the AI to finish learning from history first.";return;}
   BT.running=true;BT.abort=false;
   const btn=$("#btRun"),prog=$("#btProgress"),msg=$("#btMsg"),fill=$("#btBarFill");
   btn.textContent="Stop";prog.hidden=false;$("#btResults").innerHTML="";
@@ -1005,12 +1148,12 @@ function renderBacktest(){
     return `<tr class="bt-k${k===BT.k?" sel":""}" data-k="${k}" tabindex="0"><td>${k} of 9${k===c.minExtras?' <span class="tag good">your setting</span>':""}</td><td class="r num">${s.n}</td><td class="r num">${pct(s.tp1)}</td><td class="r num ${pnlCls(s.net)}">${money(s.net)}</td><td class="r num ${pnlCls(s.netR)}">${rTxt(s.netR)}</td><td class="r num">${pfTxt(s)}</td><td class="r num">${money(-s.dd)}</td></tr>`;}).join("");
   const grp=(title,rows)=>`<table><thead><tr><th>${title}</th><th class="r">Trades</th><th class="r">Reached TP1</th><th class="r">Net per 0.01 lot</th><th class="r">Avg</th></tr></thead><tbody>
     ${rows.map(g=>`<tr><td>${esc(g.k)}</td><td class="r num">${g.s.n}</td><td class="r num">${pct(g.s.tp1)}</td><td class="r num ${pnlCls(g.s.net)}">${money(g.s.net)}</td><td class="r num">${rTxt(g.s.avgR)}</td></tr>`).join("")||'<tr><td colspan="5" class="muted">No filled trades</td></tr>'}</tbody></table>`;
-  const P=t=>BT.mode==="A"?t.pA:t.pB;
+  const P=t=>BT.mode==="A"?t.pA:BT.mode==="C"?t.pC:t.pB;
   const list=trades.slice().reverse().slice(0,150);
   const warn=st.n<30?`<p class="bt-warn">Only ${st.n} filled trades. That's too few to judge the strategy; try a longer period or fewer required confluences.</p>`:"";
   el.innerHTML=`
-    <p class="small muted">${BT.days} days to ${when(rep.end)}. Entry at the middle of each range, targets $${fmt(c.t1)} / $${fmt(c.t2)} / $${fmt(c.t3)}, max stop $${fmt(c.maxRisk)}, ${BT.mode==="A"?"everything closed at TP1":"a third closed at each target with the stop moved to entry after TP1"}, $${fmt(BT.spread)} cost per trade. Profit is per 0.01 lot (1 oz); multiply by 100 for a standard lot.</p>
-    ${warn}
+    <p class="small muted">${BT.days} days to ${when(rep.end)}. ${(S.cfg.must||[]).length?`Your filters: ${CONF.filter(cf=>S.cfg.must.includes(cf.key)).map(cf=>cf.name).join(", ")}. `:""}Filled when price touches the range, at its near edge, targets $${fmt(c.t1)} / $${fmt(c.t2)} / $${fmt(c.t3)}, max stop $${fmt(c.maxRisk)}, ${BT.mode==="A"?"everything closed at TP1":BT.mode==="C"?"half closed at TP1 and half run to TP3, stop to entry after TP1":"a third closed at each target with the stop moved to entry after TP1"}${eff().tuned?`, self-tuned version (${vName(eff())})`:""}, $${fmt(BT.spread)} cost per trade. Profit is per 0.01 lot (1 oz); multiply by 100 for a standard lot.</p>
+    ${warn}${["t1","t2","t3","maxRisk"].some(k=>c[k]!==S.cfg[k])?`<p class="bt-warn">Your targets or max stop have changed since this backtest ran. Run it again to test the new settings.</p>`:""}
     <div class="bt-tiles">
       ${tile("Filled trades",st.n)}${tile("Reached TP1",pct(st.tp1))}${tile("Reached TP2",pct(st.tp2))}${tile("Reached TP3",pct(st.tp3))}
       ${tile("Net profit per 0.01 lot",money(st.net),pnlCls(st.net))}${tile("Net result",rTxt(st.netR),pnlCls(st.netR))}
@@ -1022,13 +1165,18 @@ function renderBacktest(){
         <div class="tblwrap"><table><thead><tr><th>Confluences needed</th><th class="r">Trades</th><th class="r">TP1</th><th class="r">Net</th><th class="r">Net R</th><th class="r">PF</th><th class="r">Max DD</th></tr></thead><tbody>${thr}</tbody></table></div></div>
       <div><h3>By session</h3><div class="tblwrap">${grp("Session",btGroup(trades,BT.mode,t=>t.sess))}</div>
         <h3 style="margin-top:18px">By direction</h3><div class="tblwrap">${grp("Side",btGroup(trades,BT.mode,t=>t.dir===1?"Buys":"Sells"))}</div>
-        <p class="small muted" style="margin-top:10px">${st.missed} signals ran to TP1 without reaching the middle of the range, and ${st.expired} expired unfilled after 60 minutes.</p></div>
+        <p class="small muted" style="margin-top:10px">${st.missed} signals ran to TP1 without ever touching the range, and ${st.expired} expired unfilled after 60 minutes.</p></div>
     </div>
+    <h3 style="margin-top:24px">Which confluences matter</h3>
+    <p class="small muted">Every trade at ${Math.min(...ks)} or more confluences in this period, split by whether each confluence was present. If trades with one win clearly more often, make it a must-have. Changes apply straight away, live and here.</p>
+    <div class="tblwrap">${impactHTML()}</div>
     <div class="chart-head" style="margin-top:22px"><h3 style="margin:0">Trades</h3><button type="button" id="btCsv">Download CSV</button></div>
     <div class="tblwrap bt-trades"><table><thead><tr><th>Signal</th><th>Side</th><th class="r">Entry range</th><th class="r">SL</th><th class="r">TP1 / 2 / 3</th><th class="r">Conf.</th><th>Result</th><th class="r">Heat</th><th class="r">P/L per 0.01 lot</th></tr></thead><tbody>
-      ${list.map(t=>{const p=P(t);return `<tr class="${p==null?"dim":""}"><td>${when(t.T)}</td><td class="${t.dir===1?"up":"dn"}">${t.dir===1?"Buy":"Sell"}</td><td class="r num">${fmt(t.lo)} to ${fmt(t.hi)}</td><td class="r num">${fmt(t.sl)}</td><td class="r num">${tpList(t).map(fmt).join(" / ")}</td><td class="r num">${t.bonus}</td><td><span class="pill ${t.hit>0?"win":t.status==="loss"?"loss":""}">${STATUS_LABEL[t.status]||t.status}</span></td><td class="r num">${t.mae!=null?money(t.mae):"—"}</td><td class="r num ${pnlCls(p)}">${p==null?"—":money(p)}</td></tr>`;}).join("")||'<tr><td colspan="9" class="muted">No signals at this threshold.</td></tr>'}
+      ${list.map(t=>{const p=P(t);return `<tr class="${p==null?"dim":""}"><td>${when(t.T)}</td><td class="${t.dir===1?"up":"dn"}">${t.dir===1?"Buy":"Sell"}</td><td class="r num">${fmt(t.lo)} to ${fmt(t.hi)}</td><td class="r num">${fmt(t.sl)}</td><td class="r num">${tpList(t).map(x=>fmt(x)).join(" / ")}</td><td class="r num">${t.bonus}</td><td><span class="pill ${t.hit>0?"win":t.status==="loss"?"loss":""}">${STATUS_LABEL[t.status]||t.status}</span></td><td class="r num">${t.mae!=null?money(t.mae):"—"}</td><td class="r num ${pnlCls(p)}">${p==null?"—":money(p)}</td></tr>`;}).join("")||'<tr><td colspan="9" class="muted">No signals at this threshold.</td></tr>'}
     </tbody></table></div>
-    <p class="small muted" style="margin-top:12px">How this is tested: zones and trend are rebuilt every 5 minutes and the confluence check runs every minute, using only data available at that moment. The order rests at the middle of the entry range for 60 minutes. If the stop and a target are both hit inside the same minute, the stop is counted. Heat is the furthest price moved against the entry before the trade finished. Trades still open after 4 hours close at market. PAXG candles stand in for spot gold, so real fills and spreads at your broker will differ. Past results don't guarantee future ones.</p>`;
+    <p class="small muted" style="margin-top:12px">How this is tested: zones and trend are rebuilt every 5 minutes and the confluence check runs every minute, using only data available at that moment. A trade fills the moment price touches the entry range, at its near edge, within 60 minutes of the signal. If the stop and a target are both hit inside the same minute, the stop is counted. Heat is the furthest price moved against the entry before the trade finished. Trades still open after 4 hours close at market. PAXG candles stand in for spot gold, so real fills and spreads at your broker will differ. Past results don't guarantee future ones.</p>`;
+  el.querySelectorAll("button.must-t").forEach(b=>b.onclick=()=>{const k=b.dataset.key,m=new Set(S.cfg.must||[]);m.has(k)?m.delete(k):m.add(k);
+    S.cfg.must=[...m];store.set("xau_scalp_cfg_v1",S.cfg);renderBacktest();if(S.A)runAnalysis();});
   el.querySelectorAll("tr.bt-k").forEach(r=>{const go=()=>{BT.k=+r.dataset.k;renderBacktest();};r.onclick=go;r.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}};});
   $("#btCsv").onclick=()=>btCsv(trades);
   drawEquity(st.curve);
@@ -1049,8 +1197,8 @@ function drawEquity(curve){
   BT.chart.timeScale().fitContent();
 }
 function btCsv(trades){
-  const head=["signal_time_utc","side","range_low","range_high","entry_mid","stop","tp1","tp2","tp3","confluences","session","result","targets_hit","heat","pnl_all_at_tp1","pnl_thirds"];
-  const rows=trades.map(t=>[new Date(t.T*1000).toISOString(),t.dir===1?"buy":"sell",t.lo.toFixed(2),t.hi.toFixed(2),t.mid.toFixed(2),t.sl.toFixed(2),t.tp1.toFixed(2),t.tp2.toFixed(2),t.tp3.toFixed(2),t.bonus,`"${t.sess}"`,t.status,t.hit,t.mae!=null?t.mae.toFixed(2):"",t.pA==null?"":t.pA.toFixed(2),t.pB==null?"":t.pB.toFixed(2)].join(","));
+  const head=["signal_time_utc","side","range_low","range_high","entry","stop","tp1","tp2","tp3","confluences","session","result","targets_hit","heat","pnl_all_at_tp1","pnl_thirds"];
+  const rows=trades.map(t=>[new Date(t.T*1000).toISOString(),t.dir===1?"buy":"sell",t.lo.toFixed(2),t.hi.toFixed(2),t.entry.toFixed(2),t.sl.toFixed(2),t.tp1.toFixed(2),t.tp2.toFixed(2),t.tp3.toFixed(2),t.bonus,`"${t.sess}"`,t.status,t.hit,t.mae!=null?t.mae.toFixed(2):"",t.pA==null?"":t.pA.toFixed(2),t.pB==null?"":t.pB.toFixed(2)].join(","));
   const blob=new Blob([head.join(",")+"\n"+rows.join("\n")],{type:"text/csv"}),a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download=`mmfx-xauusd-backtest-${BT.days}d.csv`;document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
@@ -1059,8 +1207,325 @@ $("#btRun").onclick=runBacktest;
 $("#btMode").onchange=()=>BT.rep&&renderBacktest();
 $("#btSpread").onchange=()=>BT.rep&&renderBacktest();
 
+function impactHTML(){
+  const all=btSimulate(BT.rep,3,BT.spread,0),P=t=>BT.mode==="A"?t.pA:BT.mode==="C"?t.pC:t.pB,f=all.filter(t=>P(t)!=null),must=S.cfg.must||[];
+  const g=list=>({n:list.length,tp1:list.length?list.filter(t=>t.hit>0).length/list.length:NaN,avg:list.length?list.reduce((a,t)=>a+P(t)/t.risk,0)/list.length:NaN});
+  return `<table><thead><tr><th>Confluence</th><th class="r">With it</th><th class="r">TP1 rate</th><th class="r">Avg</th><th class="r">Without it</th><th class="r">TP1 rate</th><th class="r">Avg</th><th>Effect</th><th></th></tr></thead><tbody>
+  ${CONF.map((cf,k)=>{const w=g(f.filter(t=>t.flags&(1<<k))),o=g(f.filter(t=>!(t.flags&(1<<k))));
+    const diff=w.tp1-o.tp1,enough=w.n>=10&&o.n>=10;
+    const eff=!enough?'<span class="muted">Not enough trades</span>':diff>=0.1&&w.avg>o.avg?'<span class="up">Helps</span>':diff<=-0.1&&w.avg<o.avg?'<span class="dn">Hurts</span>':'<span class="muted">No clear effect</span>';
+    const on=must.includes(cf.key);
+    return `<tr><td>${cf.name}</td><td class="r num">${w.n}</td><td class="r num">${pct(w.tp1)}</td><td class="r num">${rTxt(w.avg)}</td><td class="r num">${o.n}</td><td class="r num">${pct(o.tp1)}</td><td class="r num">${rTxt(o.avg)}</td><td>${eff}</td>
+      <td><button type="button" class="must-t" data-key="${cf.key}" aria-pressed="${on}">${on?"Must-have":"Make must-have"}</button></td></tr>`;}).join("")}</tbody></table>`;
+}
+/* Re-check signals that were marked "missed" under the old fill rule, using real 1m history. */
+async function recheckMissed(){
+  const list=S.log.filter(s=>s.status==="missed"&&!s.rechecked).slice(-40);if(!list.length)return;
+  for(const s of list){
+    try{const raw=await fetchRange("1m",60,s.t,s.t+6*3600,()=>{});const r=simZone(s,raw.map(b=>adj(b,s.off||0)),0);
+      s.status=r.status;s.hit=r.hit;s.rechecked=true;}catch(e){}
+  }
+  store.set("xau_scalp_log_v2",S.log);renderAll();
+}
+/* ---------- AI learning ---------- */
+/* Every setup the scanner sees (signalled or not) becomes a paper trade, and the same setup is also paper-traded in 30
+   alternative versions (TP1 distance x entry depth x stop width). From those results it learns three things, each of which
+   must prove itself on the newest 25% of setups it never trained on before it's used:
+   1. which setups win (TP1 before stop) - decides signals
+   2. which trade version earns the most - self-tunes TP1, entry depth and stop
+   3. how likely TP2 and TP3 are - picks the exit plan with the best expected profit */
+const FEAT=[...CONF.map(cf=>cf.name),"Buy side","London session","London and New York overlap","New York session",
+  "More zone touches","Wider stop","More room to target","Deeper RSI stretch","Heavier pullback volume"];
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function features(ev,dir,t){
+  const f=CONF.map((cf,k)=>ev.flags&(1<<k)?1:0),sn=session(t).name,p=ev.plan,r=ev.rsiNow,v=ev.vRatio;
+  f.push(dir===1?1:0,sn==="London session"?1:0,sn.includes("overlap")?1:0,sn==="New York session"?1:0);
+  f.push(Math.min(p.z.touches,6)/6,clamp(p.risk/Math.max(1,S.cfg.maxRisk),0,1.5),Math.min(isFinite(p.room)?p.room:20,20)/20,
+    isFinite(r)?clamp(dir===1?(50-r)/50:(r-50)/50,-1,1):0,isFinite(v)?Math.min(v,2)/2:0.5);
+  return f;
+}
+const sigm=z=>1/(1+Math.exp(-z));
+const predict=(m,x)=>{if(!m||!x||x.length!==m.W.length)return NaN;let z=m.b;for(let j=0;j<x.length;j++)z+=m.W[j]*x[j];return sigm(z);};
+function solveSym(A,bv,d){const M=new Float64Array(A),x=Float64Array.from(bv);
+  for(let c=0;c<d;c++){let piv=c;for(let r=c+1;r<d;r++)if(Math.abs(M[r*d+c])>Math.abs(M[piv*d+c]))piv=r;
+    if(Math.abs(M[piv*d+c])<1e-12)continue;
+    if(piv!==c){for(let k=0;k<d;k++){const t=M[c*d+k];M[c*d+k]=M[piv*d+k];M[piv*d+k]=t;}const t=x[c];x[c]=x[piv];x[piv]=t;}
+    for(let r=c+1;r<d;r++){const f=M[r*d+c]/M[c*d+c];if(!f)continue;for(let k=c;k<d;k++)M[r*d+k]-=f*M[c*d+k];x[r]-=f*x[c];}}
+  for(let c=d-1;c>=0;c--){let v=x[c];for(let k=c+1;k<d;k++)v-=M[c*d+k]*x[k];x[c]=Math.abs(M[c*d+c])<1e-12?0:v/M[c*d+c];}
+  return x;}
+/* L2-regularised logistic regression (the bias isn't penalised), fitted with Newton's method */
+function trainLR(X,y,w,lambda=3){
+  const n=X.length,d=X[0].length+1,beta=new Float64Array(d),f=new Float64Array(d);
+  for(let it=0;it<30;it++){
+    const H=new Float64Array(d*d),g=new Float64Array(d);
+    for(let i=0;i<n;i++){const xi=X[i];f[0]=1;for(let j=1;j<d;j++)f[j]=xi[j-1];
+      let z=0;for(let j=0;j<d;j++)z+=beta[j]*f[j];const p=1/(1+Math.exp(-z)),wi=w[i];if(!wi)continue;
+      const r=wi*(y[i]-p),h=wi*p*(1-p);
+      for(let a=0;a<d;a++){const fa=f[a];if(fa===0)continue;g[a]+=r*fa;const ha=h*fa;for(let c=a;c<d;c++)H[a*d+c]+=ha*f[c];}}
+    for(let a=0;a<d;a++)for(let c=0;c<a;c++)H[a*d+c]=H[c*d+a];
+    for(let j=1;j<d;j++){H[j*d+j]+=lambda;g[j]-=lambda*beta[j];}
+    const step=solveSym(H,g,d);let mx=0;for(let j=0;j<d;j++)mx=Math.max(mx,Math.abs(step[j]));
+    const sc=mx>4?4/mx:1;for(let j=0;j<d;j++)beta[j]+=sc*step[j];
+    if(mx<1e-7)break;
+  }
+  return {W:Array.from(beta.subarray(1)),b:beta[0]};
+}
+const HALF_LIFE=45*86400;
+const recencyW=(list,now)=>list.map(s=>Math.pow(0.5,Math.max(0,now-s.t)/HALF_LIFE));
+const logLoss=(ps,ys)=>ps.reduce((a,p,i)=>a-(ys[i]?Math.log(clamp(p,1e-6,1)):Math.log(clamp(1-p,1e-6,1))),0)/ps.length;
+const fitOn=(list,lab,now)=>trainLR(list.map(s=>s.x),list.map(lab),recencyW(list,now));
+function validate(lab){
+  if(lab.length<60)return {proven:false,reason:`Needs at least 60 resolved setups to test itself (has ${lab.length}).`};
+  const cut=Math.floor(lab.length*0.75),tr=lab.slice(0,cut),te=lab.slice(cut),now=tr.at(-1).t;
+  const m=fitOn(tr,s=>s.y,now);
+  const base=tr.reduce((a,s)=>a+s.y,0)/tr.length,ps=te.map(s=>predict(m,s.x)),ys=te.map(s=>s.y);
+  const llM=logLoss(ps,ys),llB=logLoss(ps.map(()=>base),ys);
+  const grp=list=>({n:list.length,rate:list.length?list.reduce((a,s)=>a+s.y,0)/list.length:NaN,r:list.length?list.reduce((a,s)=>a+(s.r||0),0)/list.length:NaN});
+  const thr=S.cfg.aiMin/100,ai=grp(te.filter((s,i)=>ps[i]>=thr)),rule=grp(te.filter(s=>s.bonus>=S.cfg.minExtras)),all=grp(te);
+  const proven=llM<llB*0.99&&ai.n>=5&&ai.rate>=all.rate&&(isNaN(rule.rate)||rule.n<5||ai.r>=rule.r);
+  return {proven,llM,llB,ai,rule,all,nTest:te.length,
+    reason:proven?"":llM>=llB*0.99?"Its predictions aren't yet better than guessing the average win rate.":ai.n<5?"Too few unseen setups passed its win-chance bar to judge it.":"Its picks haven't beaten the confluence rule on unseen setups yet."};
+}
+
+/* ----- trade versions for self-tuning ----- */
+const V_TP=[4,5,6,7,8],V_DEPTH=[0,0.25,0.5],V_STOP=[0,0.5];
+const gapSig=()=>`${+(S.cfg.t2-S.cfg.t1).toFixed(2)},${+(S.cfg.t3-S.cfg.t1).toFixed(2)},${S.cfg.maxRisk}`;
+function grid(){const c=S.cfg,g2=c.t2-c.t1,g3=c.t3-c.t1,out=[];
+  for(const t1 of V_TP)for(const depth of V_DEPTH)for(const stopX of V_STOP)out.push({t1,t2:t1+g2,t3:t1+g3,depth,stopX});return out;}
+const vName=v=>`TP1 $${v.t1}, ${v.depth?Math.round(v.depth*100)+"% into the range":"entry at the range edge"}, ${v.stopX?`stop $${v.stopX} wider`:"standard stop"}`;
+function defaultIdx(){const G=grid(),c=S.cfg;let best=0,bd=1e9;G.forEach((v,i)=>{const d=Math.abs(v.t1-c.t1)+v.depth*10+v.stopX*10;if(d<bd){bd=d;best=i;}});return best;}
+/* net $ (thirds management, after spread) for every version of a setup; unfilled or untradable = 0; null if not finished yet */
+function variantResults(s,bars,j0){
+  if(!s.g)return null;const out=[],c=S.cfg,sp=c.spread??0.3;
+  for(const v of grid()){const p=geom(s.g,v,c);
+    if(!p.tradable){out.push(0);continue;}
+    const r=simZone({...p,dir:s.dir},bars,j0);
+    if(["pending","live","running"].includes(r.status))return null;
+    out.push(r.A==null?0:r2(r.B-sp));}
+  return out;
+}
+/* exit plans: A all at TP1; B a third at each target; C half at TP1, half at TP3. Stop to entry after TP1 in B and C. */
+const lc1=x=>x.charAt(0).toLowerCase()+x.slice(1);
+const EXITS={A:"Close everything at TP1",B:"Close a third at each target",C:"Close half at TP1, let half run to TP3"};
+/* exit wording that follows the targets that actually fit on this trade */
+function exitText(k,s){const n=s?tpList(s).length:3;
+  if(k==="A"||n===1)return "Close everything at TP1";
+  if(k==="B")return n===3?"Close a third at each target":"Close a third at TP1 and the rest at TP2";
+  return `Close half at TP1, let half run to TP${n}`;}
+function exitAdvice(st,x,s){
+  if(!st||!st.model||!st.m2||!st.m3)return null;
+  let p1=predict(st.model,x),p2=Math.min(p1,predict(st.m2,x)),p3=Math.min(p2,predict(st.m3,x));
+  const en=s.entry,d1=Math.abs(s.tp1-en),d2=Math.abs(s.tp2-en),d3=Math.abs(s.tp3-en),L=(1-p1)*s.risk;
+  const ev={A:p1*d1-L,B:p1*d1/3+p2*d2/3+p3*d3/3-L,C:p1*d1/2+p3*d3/2-L};
+  const pick=Object.keys(ev).sort((a,b)=>ev[b]-ev[a])[0];
+  return {pick,ev,p1,p2,p3};
+}
+
+const AI={samples:store.get("xau_ai_samples_v1",[]),state:store.get("xau_ai_model_v1",null),busy:false,timer:null};
+const r2=x=>Number.isFinite(x)?Math.round(x*100)/100:x,r3=x=>Number.isFinite(x)?Math.round(x*1000)/1000:x;
+function compactSample(s){for(const k of ["lo","hi","mid","entry","sl","tp1","tp2","tp3","off","pA","pB","pC"])s[k]=r2(s[k]);if(Number.isFinite(s.r))s.r=r3(s.r);if(Array.isArray(s.x))s.x=s.x.map(r3);
+  if(s.g){s.g.zlo=r2(s.g.zlo);s.g.zhi=r2(s.g.zhi);s.g.buf=r2(s.g.buf);if(s.g.opp!=null)s.g.opp=r2(s.g.opp);}return s;}
+function saveSamples(){
+  AI.samples.forEach(compactSample);
+  if(AI.samples.length>4000)AI.samples=AI.samples.slice(-4000);
+  for(let tries=0;tries<5;tries++){if(store.set("xau_ai_samples_v1",AI.samples)){AI.full=false;return;}
+    AI.samples=AI.samples.slice(Math.floor(AI.samples.length*0.2));AI.full=true;}
+}
+function aiDecides(){const m=S.cfg.aiMode||"auto";return !!(AI.state&&AI.state.model)&&(m==="always"||(m==="auto"&&AI.state.val&&AI.state.val.proven));}
+function nearDup(list,dir,mid,t){return list.some(x=>x.dir===dir&&Math.abs(x.mid-mid)<1.5&&Math.abs(t-x.t)<4*3600);}
+function addSample(ev,dir,t,off,src){
+  const p=ev.plan;t=Math.floor(t/60)*60;
+  if(nearDup(AI.samples,dir,p.mid,t))return false;
+  AI.samples.push({t,dir,lo:p.lo,hi:p.hi,mid:p.mid,entry:p.entry,sl:p.sl,tp1:p.tp1,tp2:p.tp2,tp3:p.tp3,risk:p.risk,g:p.g,off,
+    x:features(ev,dir,t),bonus:ev.bonus,y:null,src});
+  return true;
+}
+/* outcome of the setup as planned, net of your spread */
+function labelFrom(r){
+  const sp=S.cfg.spread??0.3;
+  if(r.status==="missed"||r.status==="expired")return {y:-1,st:r.status,hit:0};
+  if(!["loss","tp1","tp2","tp3","timeout"].includes(r.status))return null;
+  const y=r.status==="loss"?0:r.status==="timeout"?(r.A>0?1:0):1;
+  return {y,hit:r.hit,st:r.status,r:(r.B-sp)/r.risk,pA:r.A-sp,pB:r.B-sp,pC:r.C-sp};
+}
+function resolveOne(s,bars,j0){
+  if(s.y==null){const lab=labelFrom(simZone(s,bars,j0));if(lab)Object.assign(s,lab);}
+  if(s.g&&!s.vr){const vr=variantResults(s,bars,j0);if(vr){s.vr=vr;s.vg=gapSig();}}
+  return s.y!=null&&(!s.g||!!s.vr);
+}
+function resolveSamples(){
+  const raw=S.raw.M1;if(!raw)return;let changed=false;
+  for(const s of AI.samples){
+    if((s.y!=null&&(s.vr||!s.g))||s.t<raw[0].t)continue;
+    const bars=raw.map(b=>adj(b,s.off||0)),j0=bars.findIndex(b=>b.t>=s.t);if(j0<0)continue;
+    const before=s.y+"|"+!!s.vr;resolveOne(s,bars,j0);if(before!==s.y+"|"+!!s.vr)changed=true;
+  }
+  if(changed){saveSamples();scheduleRetrain();}
+}
+async function resolveOldSamples(){
+  const old=AI.samples.filter(s=>(s.y==null||(s.g&&!s.vr))&&nowS()-s.t>6*3600).slice(-60);
+  for(const s of old){try{const raw=await fetchRange("1m",60,s.t,s.t+6*3600,()=>{});
+    if(!resolveOne(s,raw.map(b=>adj(b,s.off||0)),0)){if(s.y==null)Object.assign(s,{y:-1,st:"unresolved"});if(s.g&&!s.vr)s.g=null;}}catch(e){}}
+  if(old.length){saveSamples();scheduleRetrain();}
+}
+function scheduleRetrain(){clearTimeout(AI.timer);AI.timer=setTimeout(retrain,600);}
+
+/* self-tuning: pick the trade version with the best average profit on older setups, keep it only if it also beats your
+   own settings on the newest 25% it never saw */
+/* paired test: how confidently does list a beat list b on the same setups? returns mean difference and t-statistic */
+function pairedT(a,b){const n=a.length;if(n<2)return {d:0,t:0};const d=a.map((x,i)=>x-b[i]),m=d.reduce((s,x)=>s+x,0)/n;
+  const v=d.reduce((s,x)=>s+(x-m)*(x-m),0)/(n-1),se=Math.sqrt(v/n);return {d:m,t:se>0?m/se:(m>0?Infinity:0)};}
+function tune(){
+  const list=AI.samples.filter(s=>Array.isArray(s.vr)&&s.vg===gapSig()).sort((a,b)=>a.t-b.t),G=grid(),di=defaultIdx();
+  const other=AI.samples.filter(s=>Array.isArray(s.vr)&&s.vg!==gapSig()).length;
+  if(list.length<60)return {proven:false,n:list.length,reason:`Needs at least 60 tracked setups to compare trade versions (has ${list.length}).`+(other?` ${other} older setups were tracked with different TP spacing or max stop, so they don't count for these settings.`:"")};
+  const mean=(L,i,w)=>{let a=0,sw=0;L.forEach((s,k)=>{const ww=w?w[k]:1;a+=(s.vr[i]||0)*ww;sw+=ww;});return sw?a/sw:NaN;};
+  const cut=Math.floor(list.length*0.75),tr=list.slice(0,cut),te=list.slice(cut),w=recencyW(tr,tr.at(-1).t);
+  let bi=di;G.forEach((v,i)=>{if(mean(tr,i,w)>mean(tr,bi,w))bi=i;});
+  const tb=mean(te,bi),td=mean(te,di),wAll=recencyW(list,list.at(-1).t);
+  const top=G.map((v,i)=>({i,v,m:mean(list,i,wAll)})).sort((a,b)=>b.m-a.m).slice(0,5);
+  const pt=pairedT(te.map(s=>s.vr[bi]||0),te.map(s=>s.vr[di]||0));
+  const proven=bi!==di&&te.length>=20&&pt.d>=0.10&&pt.t>=2&&tb>0;
+  return {proven,best:G[bi],bi,di,def:G[di],tb,td,nTest:te.length,n:list.length,top,sig:gapSig(),
+    t:pt.t,reason:proven?"":bi===di?"Your current settings are already the best version it has found.":te.length<20?"Too few unseen setups to confirm the better version yet.":tb<=0?"The best version isn't profitable on unseen setups yet.":pt.d<0.10?"The best version's edge over your settings is too small to be worth switching.":"The best version's lead on unseen setups could still be luck, so it keeps testing."};
+}
+/* smart exits: TP2 and TP3 models, kept only if choosing exits per trade beats "a third at each target" on unseen setups */
+function exitModels(){
+  const L=AI.samples.filter(s=>(s.y===0||s.y===1)&&Number.isFinite(s.hit)&&Number.isFinite(s.pC)).sort((a,b)=>a.t-b.t);
+  if(L.length<40)return {m2:null,m3:null,val:{proven:false,n:L.length,reason:`Needs at least 40 filled setups with full results (has ${L.length}).`}};
+  const now=L.at(-1).t,m2=fitOn(L,s=>s.hit>=2?1:0,now),m3=fitOn(L,s=>s.hit>=3?1:0,now);
+  let val={proven:false,n:L.length,reason:`Needs at least 60 filled setups to test itself (has ${L.length}).`};
+  if(L.length>=60){
+    const cut=Math.floor(L.length*0.75),tr=L.slice(0,cut),te=L.slice(cut),tn=tr.at(-1).t;
+    const st={model:fitOn(tr,s=>s.y,tn),m2:fitOn(tr,s=>s.hit>=2?1:0,tn),m3:fitOn(tr,s=>s.hit>=3?1:0,tn)};
+    const sm=[],th=[];const used={A:0,B:0,C:0};
+    for(const s of te){const a=exitAdvice(st,s.x,s);used[a.pick]++;sm.push(s["p"+a.pick]);th.push(s.pB);}
+    const smart=sm.reduce((a,x)=>a+x,0)/te.length,thirds=th.reduce((a,x)=>a+x,0)/te.length,pt=pairedT(sm,th);
+    const proven=te.length>=20&&pt.d>=0.10&&pt.t>=2;
+    val={proven,n:L.length,nTest:te.length,smart,thirds,used,
+      reason:proven?"":te.length<20?"Too few unseen setups to judge it yet.":"Choosing exits per trade hasn't clearly beaten taking a third at each target on unseen setups yet."};
+  }
+  return {m2,m3,val};
+}
+function retrain(){
+  const lab=AI.samples.filter(s=>s.y===0||s.y===1).sort((a,b)=>a.t-b.t),prev=AI.state||{};
+  const st={n:lab.length,wins:lab.filter(s=>s.y===1).length,trainedAt:nowS(),version:(prev.version||0)+1,tune:tune()};
+  if(lab.length<20){st.model=null;st.val={proven:false,reason:`Needs at least 20 resolved setups to start learning (has ${lab.length}).`};}
+  else{st.model=fitOn(lab,s=>s.y,nowS());st.val=validate(lab);Object.assign(st,(({m2,m3,val})=>({m2,m3,exitVal:val}))(exitModels()));}
+  AI.state=st;store.set("xau_ai_model_v1",AI.state);renderAI();if(S.A)runAnalysis();
+}
+const smartExitsOn=()=>S.cfg.smartExit!==false&&AI.state&&AI.state.exitVal&&AI.state.exitVal.proven;
+/* hook used by live analysis: score the current setup, collect it as a lesson, and let a proven model decide the grade */
+function aiApply(A){
+  const e=A.ev;if(!e||!e.plan)return;
+  e.x=features(e,A.dir,A.t);
+  e.aiP=AI.state&&AI.state.model?predict(AI.state.model,e.x):NaN;
+  e.exit=exitAdvice(AI.state,e.x,e.plan);
+  if(e.stage==="setup"&&e.baseOk&&addSample(e,A.dir,A.t,A.off,"live"))saveSamples();
+  if(e.stage==="setup"&&aiDecides())e.grade=e.reqOk&&e.aiP>=S.cfg.aiMin/100?"A":"B";
+  resolveSamples();
+}
+async function learnHistory(){
+  if(AI.busy){BT.abort=true;return;}
+  if(BT.running){$("#aiProgress").hidden=false;$("#aiMsg").textContent="Wait for the backtest to finish first.";return;}
+  AI.busy=true;BT.abort=false;
+  const msg={set textContent(v){AI.msg=v;const e=$("#aiMsg");if(e)e.textContent=v;}},fill={style:{set width(v){AI.fill=v;const e=$("#aiBarFill");if(e)e.style.width=v;}}};
+  const btn={set textContent(v){const e=$("#aiLearn");if(e)e.textContent=v;}};
+  btn.textContent="Stop";$("#aiProgress").hidden=false;
+  const days=+$("#aiDays").value,end=Math.floor(nowS()/60)*60,start=end-days*86400;
+  const warm={M1:520*60,M5:520*300,M15:420*900,H1:320*3600};
+  const total=TFS.reduce((n,tf)=>n+Math.ceil((days*86400+warm[tf])/TF_SEC[tf]/1000),0)+1;let done=0;
+  const tick=()=>{done++;fill.style.width=(Math.min(1,done/total)*40).toFixed(1)+"%";msg.textContent=`Downloading ${days} days of history, ${done} of about ${total} requests`;};
+  try{
+    const data={};for(const tf of TFS)data[tf]=await fetchRange(INT[tf],TF_SEC[tf],start-warm[tf],end,tick);
+    data.D1=await fetchRange("1d",86400,start-5*86400,end,tick);
+    const off=offset(),rep=await btReplay(data,start,off,f=>{fill.style.width=(40+f*50).toFixed(1)+"%";msg.textContent=`Studying every setup in ${days} days, ${Math.round(f*100)}%`;});
+    let added=0,k=0;
+    for(const c of rep.cands){
+      if(++k%50===0){fill.style.width=(90+10*k/rep.cands.length).toFixed(1)+"%";msg.textContent=`Paper-trading 30 versions of each setup, ${Math.round(100*k/rep.cands.length)}%`;await yieldUI();}
+      if(nearDup(AI.samples,c.dir,c.mid,c.T))continue;
+      const s={t:Math.floor(c.T/60)*60,dir:c.dir,lo:c.lo,hi:c.hi,mid:c.mid,entry:c.entry,sl:c.sl,tp1:c.tp1,tp2:c.tp2,tp3:c.tp3,risk:c.risk,g:c.g,off,x:c.x,bonus:c.bonus,y:null,src:"history"};
+      resolveOne(s,rep.m1,c.i+1);if(s.y==null)continue;
+      AI.samples.push(s);added++;}
+    AI.samples.sort((a,b)=>a.t-b.t);
+    saveSamples();fill.style.width="100%";msg.textContent=`Learned from ${added} new setups.`;retrain();
+  }catch(e){msg.textContent=(e&&e.message)||"Learning failed.";}
+  finally{AI.busy=false;BT.abort=false;btn.textContent="Learn from history";}
+}
+function renderAI(){
+  const el=$("#aiBody");if(!el)return;
+  const st=AI.state,lab=AI.samples.filter(s=>s.y===0||s.y===1),wins=lab.filter(s=>s.y===1).length;
+  const pending=AI.samples.filter(s=>s.y==null).length,live=lab.filter(s=>s.src==="live").length;
+  const v=st&&st.val,decides=aiDecides(),T=st&&st.tune,X=st&&st.exitVal,E=eff();
+  const badge=(on,txtOn,txtOff)=>`<span class="ai-badge${on?" on":""}">${on?txtOn:txtOff}</span>`;
+  const mode=S.cfg.aiMode||"auto";
+  let proof="";
+  if(v&&v.ai)proof=`<p class="small">On the newest ${v.nTest} setups it never trained on, its picks at ${S.cfg.aiMin}% or higher reached TP1 <b>${pct(v.ai.rate)}</b> of the time (${v.ai.n} setups, ${rTxt(v.ai.r)} average). The confluence rule managed <b>${pct(v.rule.rate)}</b> (${v.rule.n} setups, ${rTxt(v.rule.r)}), and all setups together ${pct(v.all.rate)}.</p>`;
+  let bars="";
+  if(st&&st.model){const W=st.model.W,mx=Math.max(...W.map(Math.abs),1e-6);
+    const order=W.map((w,i)=>({w,i})).sort((a,b)=>b.w-a.w);
+    bars=`<div class="ai-bars">${order.map(o=>`<div class="ai-row"><span class="ai-name">${esc(FEAT[o.i])}</span><span class="ai-track"><span class="ai-fill ${o.w>=0?"pos":"neg"}" style="width:${(Math.abs(o.w)/mx*50).toFixed(1)}%;${o.w>=0?"left:50%":"right:50%"}"></span></span><span class="ai-val num ${o.w>=0?"up":"dn"}">${o.w>=0?"+":"−"}${Math.abs(o.w).toFixed(2)}</span></div>`).join("")}</div>
+      <p class="small muted">Bars to the right raise its win chance, bars to the left lower it. Longer bars matter more.</p>`;}
+  const tuneHTML=!T?'<p class="small muted">Starts after its first training.</p>':`
+    <p class="small">${T.proven?`Using <b>${esc(vName(T.best))}</b>. On the newest ${T.nTest} setups it never trained on, this earned <b>${money(T.tb)}</b> per setup against <b>${money(T.td)}</b> with your settings.`:esc(T.reason)}</p>
+    ${T.top?`<div class="tblwrap"><table><thead><tr><th>Best versions so far</th><th class="r">Avg per setup</th></tr></thead><tbody>${T.top.map(o=>`<tr${o.i===T.di?' class="sel-row"':""}><td>${esc(vName(o.v))}${o.i===T.di?' <span class="tag good">your settings</span>':""}</td><td class="r num ${o.m>0?"up":o.m<0?"dn":""}">${money(o.m)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="small muted">Per setup, after a $${fmt(S.cfg.spread??0.3)} spread, per 0.01 lot, a third closed at each target. Setups that don't fill count as $0, so deeper entries pay for the trades they miss. ${T.n} setups tracked.</p>`:""}`;
+  const exitHTML=!X?'<p class="small muted">Starts once it has 40 filled setups with full results.</p>':`
+    <p class="small">${X.smart!=null?`On the newest ${X.nTest} unseen setups, choosing the exit per trade earned <b>${money(X.smart)}</b> per trade against <b>${money(X.thirds)}</b> for always taking a third at each target. It chose: ${Object.entries(X.used).filter(([k,n])=>n).map(([k,n])=>`${lc1(EXITS[k])} ${n}×`).join(", ")}.`:""} ${X.proven?"":esc(X.reason)}</p>`;
+  el.innerHTML=`
+    ${AI.full?'<p class="bt-warn">Browser storage was full, so the oldest lessons were dropped to make room. Export the brain regularly to keep a full copy.</p>':""}
+    <div class="ai-head">${badge(v&&v.proven,"Signals: proven, deciding","Signals: watching only")}${badge(T&&T.proven&&S.cfg.selfTune!==false,"Self-tuning: active","Self-tuning: testing")}${badge(smartExitsOn(),"Smart exits: active","Smart exits: testing")}<span class="small muted">${st&&st.trainedAt?`Brain version ${st.version||1}, trained ${ago(st.trainedAt)}`:""}</span></div>
+    <div class="bt-tiles">
+      <div class="bt-tile"><div class="small muted">Lessons learned</div><div class="bt-v num">${lab.length}</div></div>
+      <div class="bt-tile"><div class="small muted">Wins / losses</div><div class="bt-v num"><span class="up">${wins}</span> / <span class="dn">${lab.length-wins}</span></div></div>
+      <div class="bt-tile"><div class="small muted">From live market</div><div class="bt-v num">${live}</div></div>
+      <div class="bt-tile"><div class="small muted">Waiting for result</div><div class="bt-v num">${pending}</div></div>
+    </div>
+    <div class="ai-grid">
+      <div>
+        <h3 style="margin-top:20px">1. Which setups win</h3>
+        ${proof||`<p class="small muted">${esc((v&&v.reason)||"Not enough lessons yet.")}</p>`}
+        ${v&&!v.proven&&v.ai?`<p class="small muted">${esc(v.reason)}</p>`:""}
+        <div class="ai-controls">
+          <label>How the AI is used<select id="aiMode">
+            <option value="auto"${mode==="auto"?" selected":""}>Decide signals once proven (recommended)</option>
+            <option value="assist"${mode==="assist"?" selected":""}>Only show its win chance</option>
+            <option value="always"${mode==="always"?" selected":""}>Always decide signals</option></select></label>
+          <label>Minimum win chance for a signal (%)<input id="aiMin" type="number" min="40" max="90" step="1" value="${S.cfg.aiMin}"></label>
+        </div>
+        <p class="small muted">${decides?"Right now the AI chooses which setups become signals. Your required checks and must-have filters still apply.":"Right now signals use the confluence rule. The AI's win chance is shown on each setup."}</p>
+        <h3 style="margin-top:22px">2. Self-tuning the trade</h3>
+        <p class="small muted">Every setup is also paper-traded in 30 versions: TP1 at $4 to $8, entry at the edge or 25% or 50% into the range, and a standard or wider stop.</p>
+        ${tuneHTML}
+        <label class="radio" style="border:0;padding:0;margin-top:8px"><input type="checkbox" id="selfTune" ${S.cfg.selfTune!==false?"checked":""}><span class="small">Use the best version once it's proven. ${E.tuned?"<b>Active now.</b>":""}</span></label>
+        <h3 style="margin-top:22px">3. Smart exits</h3>
+        <p class="small muted">Predicts the chance of reaching TP2 and TP3 for each trade and picks the exit plan with the best expected profit: ${Object.values(EXITS).map(lc1).join(", or ")}.</p>
+        ${exitHTML}
+        <label class="radio" style="border:0;padding:0;margin-top:8px"><input type="checkbox" id="smartExit" ${S.cfg.smartExit!==false?"checked":""}><span class="small">Recommend the exit plan on signals once it's proven.</span></label>
+        <div class="ai-controls" style="margin-top:18px">
+          <label>Learn from history<select id="aiDays"><option value="30">Last 30 days</option><option value="60" selected>Last 60 days</option><option value="90">Last 90 days</option></select></label>
+          <button type="button" id="aiLearn" aria-pressed="true">${AI.busy?"Stop":"Learn from history"}</button>
+        </div>
+        <div id="aiProgress" class="bt-progress" ${AI.busy||AI.msg?"":"hidden"}><div class="bt-bar"><span id="aiBarFill" style="width:${AI.fill||0}"></span></div><span id="aiMsg" class="small">${esc(AI.msg||"")}</span></div>
+        <div class="btnrow"><button type="button" id="aiExport">Export brain</button><label class="filebtn"><input type="file" id="aiImport" accept="application/json">Import brain</label><button type="button" id="aiReset">Reset learning</button></div>
+      </div>
+      <div><h3 style="margin-top:20px">What it has learned</h3>${bars||'<p class="small muted">Weights appear after its first training.</p>'}</div>
+    </div>`;
+  $("#aiMode").onchange=e=>{S.cfg.aiMode=e.target.value;store.set("xau_scalp_cfg_v1",S.cfg);renderAI();if(S.A)runAnalysis();};
+  $("#aiMin").onchange=e=>{S.cfg.aiMin=clamp(+e.target.value||60,40,90);store.set("xau_scalp_cfg_v1",S.cfg);retrain();};
+  $("#selfTune").onchange=e=>{S.cfg.selfTune=e.target.checked;store.set("xau_scalp_cfg_v1",S.cfg);renderAI();if(S.A)runAnalysis();};
+  $("#smartExit").onchange=e=>{S.cfg.smartExit=e.target.checked;store.set("xau_scalp_cfg_v1",S.cfg);renderAI();if(S.A)runAnalysis();};
+  $("#aiLearn").onclick=learnHistory;
+  $("#aiExport").onclick=()=>{const blob=new Blob([JSON.stringify({v:2,samples:AI.samples})],{type:"application/json"}),a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);a.download="mmfx-scalper-brain.json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);};
+  $("#aiImport").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());let n=0;
+    for(const s of (j.samples||[]))if(Array.isArray(s.x)&&s.x.length===FEAT.length&&!nearDup(AI.samples,s.dir,s.mid,s.t)){AI.samples.push(s);n++;}
+    AI.samples.sort((a,b)=>a.t-b.t);saveSamples();retrain();alert(`Imported ${n} lessons.`);}catch(err){alert("That file isn't a scalper brain export.");}};
+  $("#aiReset").onclick=()=>{if(!confirm("Delete everything the AI has learned?"))return;AI.samples=[];AI.state=null;AI.msg="";saveSamples();store.set("xau_ai_model_v1",null);retrain();};
+}
+
 /* ---------- start ---------- */
-initChart();renderTabs();renderAll();openWS();tick(true);
+$("#btSpread").value=S.cfg.spread??0.35;initChart();renderTabs();renderAll();renderAI();if(!AI.state&&AI.samples.length)retrain();openWS();tick(true);setTimeout(recheckMissed,4000);setTimeout(resolveOldSamples,7000);
 setInterval(()=>tick(false),4000);
 </script>
 </body>
