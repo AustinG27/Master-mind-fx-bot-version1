@@ -464,7 +464,7 @@ const PIVOT_K={D1:3,H4:3,H1:3,M15:3,M5:3,M1:2};
 const MIN_BARS={D1:30,H4:60,H1:100,M15:100,M5:100,M1:100};
 /* history needed before a backtest or learning period starts */
 const WARM={D1:210*86400,H4:310*14400,H1:320*3600,M15:420*900,M5:520*300,M1:520*60};
-const DEF={cfgVer:2,entryMode:"limit",newsMins:30,newsAlert:15,spread:0.35,xmAdj:0,manualOffT:0,selfTune:true,smartExit:true,aiMode:"auto",aiMin:60,must:[],t1:6,t2:8,t3:10,maxRisk:4,minExtras:6,sound:true,offMode:"none",manualOff:0,tdKey:""};
+const DEF={aiGate:"auto",aiMinEV:0.5,cfgVer:2,entryMode:"limit",newsMins:30,newsAlert:15,spread:0.35,xmAdj:0,manualOffT:0,selfTune:true,smartExit:true,aiMode:"auto",aiMin:60,must:[],t1:6,t2:8,t3:10,maxRisk:4,minExtras:6,sound:true,offMode:"none",manualOff:0,tdKey:""};
 const S={raw:{},last:{},D1:null,rawPrice:null,priceT:0,A:null,tf:"M5",err:null,lastOk:0,wsGen:0,autoOff:null,autoOffT:0,
   log:store.get("xau_scalp_log_v2",[]),cfg:Object.assign({},DEF,store.get("xau_scalp_cfg_v1",{}))};
 /* settings from before the price-action update: confluences changed, so reset the threshold and drop retired filters */
@@ -880,7 +880,9 @@ function evalZone(H,ctx){
   const reqOk=baseOk&&extras.every(x=>!x.must||x.ok);
   let flags=0;CONF.forEach((cf,k)=>{const x=extras.find(e=>e.key===cf.key);if(x&&x.ok)flags|=1<<k;});
   const stage=confirm?(cp?"setup":atZone?"confirm":"approach"):(dist<=ad?"setup":"approach");
-  return {stage,plan:p,lplan:lp,candle:cd,fib,dist,ad,checks,bonus,total:extras.length,reqOk,baseOk,flags,rsiNow:r,vRatio,
+  const runLen=st=>{let k=0;for(let q=st.events.length-1;q>=0&&st.events[q].dir===dir;q--)k++;return k;};
+  const speed=i>=15&&atr.M5>0?dir*(m1[i-15].c-m1[i].c)/atr.M5:0;
+  return {stage,plan:p,lplan:lp,candle:cd,fib,volPct:H.volPct,speed,h1Run:runLen(H.st.H1),h4Run:runLen(H.st.H4),dist,ad,checks,bonus,total:extras.length,reqOk,baseOk,flags,rsiNow:r,vRatio,
     grade:stage==="setup"&&reqOk&&bonus>=c.minExtras?"A":"B",id:confirm&&cd?`${dir}-c-${cd.t}`:`${dir}-${Math.round(lp.mid*2)/2}`};
 }
 
@@ -893,8 +895,9 @@ function analyze(C,vwBars,D1,t,price,off){
   const vw=vwapSeries(vwBars),today=dayStart(t),vwap=(vw.at(-1)&&vw.at(-1).t>=today)?vw.at(-1).value:NaN;
   const keys=keyLevels(C,off,t,D1),zones=buildZones(C,atr,keys);
   const c15=C.M15.map(b=>b.c),ema20=lastVal(ema(c15,20)),ema50=lastVal(ema(c15,50));
+  const a15=atrSeries(C.M15).filter(Number.isFinite).slice(-200),aNow=a15.at(-1),volPct=a15.length>20?a15.filter(v=>v<=aNow).length/a15.length:0.5;
   const dir=st.H4.trend!==0&&st.H4.trend===st.H1.trend?st.H1.trend:0;
-  return {C,st,atr,zones,keys,price,t,ema200,ema20,ema50,vwap,dir,off};
+  return {C,st,atr,zones,keys,price,t,ema200,ema20,ema50,vwap,dir,off,volPct};
 }
 function runAnalysis(){
   const t=nowS(),off=offset(),C={};
@@ -958,7 +961,7 @@ function recordSignal(A){
   const p=e.plan;
   const s={id:e.id+"-"+Math.round(A.t),t:Math.floor(A.t/60)*60,created:nowS(),dir:A.dir,kind:p.kind||"limit",candle:p.candle?{name:p.candle.name,tf:p.candle.tf,t:p.candle.t}:null,lo:p.lo,hi:p.hi,mid:p.mid,entry:p.entry,sl:p.sl,
     tp1:p.tp1,tp2:p.tp2,tp3:p.tp3,risk:p.risk,worst:p.worst,off:A.off,zone:{lo:p.z.lo,hi:p.z.hi},
-    bonus:e.bonus,total:e.total,aiP:Number.isFinite(e.aiP)?e.aiP:null,exit:e.exit&&smartExitsOn()?{pick:e.exit.pick,p1:r3(e.exit.p1),p2:r3(e.exit.p2),p3:r3(e.exit.p3)}:null,tuned:eff().tuned&&p.kind!=="stop"?vName(eff()):null,checks:e.checks,status:"pending",hit:0};
+    bonus:e.bonus,total:e.total,aiP:Number.isFinite(e.aiP)?e.aiP:null,evp:Number.isFinite(e.evProfit)?r2(e.evProfit):null,novel:!!e.novel,why:e.why||null,exit:e.exit&&smartExitsOn()?{pick:e.exit.pick,p1:r3(e.exit.p1),p2:r3(e.exit.p2),p3:r3(e.exit.p3)}:null,tuned:eff().tuned&&p.kind!=="stop"?vName(eff()):null,checks:e.checks,status:"pending",hit:0};
   S.log.push(s);if(S.log.length>300)S.log=S.log.slice(-300);store.set("xau_scalp_log_v2",S.log);alertSignal(s);
 }
 const staleQueue=new Set();let staleBusy=false;
@@ -1075,7 +1078,7 @@ function signalHTML(s){
   ${tpList(s).length<3?`<p class="small muted">Only ${tpList(s).length===1?"one target fits":"two targets fit"}: the next ${d===1?"resistance":"support"} zone sits $${fmt(Math.abs(s.tp3-en))} from entry, so further targets are capped there.</p>`:""}
   ${s.exit?`<p class="exit-plan"><b>Exit plan:</b> ${exitText(s.exit.pick,s)}, stop to entry after TP1. <span class="muted small">Chance of ${["p1","p2","p3"].slice(0,tpList(s).length).map((k,i)=>`TP${i+1} ${Math.round(s.exit[k]*100)}%`).join(", ")}</span></p>`:`<p class="exit-plan"><b>Exit plan:</b> ${exitText(tpList(s).length>1?"B":"A",s)}${tpList(s).length>1?", stop to entry after TP1":""}.</p>`}
   ${xmTicket(s)}
-  <div class="meta">${s.tuned?`<span>Self-tuned: ${esc(s.tuned)}</span>`:""}${Number.isFinite(s.aiP)?`<span class="ai-chance">AI win chance ${Math.round(s.aiP*100)}%</span>`:""}<span>Signalled ${when(s.created)}. Status: ${STATUS_LABEL[s.status]||s.status}</span><span>Zone ${fmt(s.zone.lo)} to ${fmt(s.zone.hi)}</span>${s.candle?`<span>Confirmed by a ${esc(s.candle.name)} on the ${s.candle.tf==="M15"?"15m":"5m"}</span>`:""}</div>
+  ${aiLineHTML(s.aiP,s.evp,s.novel,s.why,"")}<div class="meta">${s.tuned?`<span>Self-tuned: ${esc(s.tuned)}</span>`:""}<span>Signalled ${when(s.created)}. Status: ${STATUS_LABEL[s.status]||s.status}</span><span>Zone ${fmt(s.zone.lo)} to ${fmt(s.zone.hi)}</span>${s.candle?`<span>Confirmed by a ${esc(s.candle.name)} on the ${s.candle.tf==="M15"?"15m":"5m"}</span>`:""}</div>
   <div class="btnrow"><button type="button" id="copyBtn">Copy levels</button><button type="button" id="dismissBtn">Dismiss signal</button></div>
   ${S.A?nextZonesHTML(S.A):""}
   <details class="why"${S.whyOpen?" open":""}><summary>Why this signal: ${s.bonus} of ${s.total} confluences</summary>${checksHTML(s.checks||[])}</details>`;
@@ -1098,7 +1101,7 @@ function watchHTML(A){
       :aiDecides()?`The AI rates it below its ${S.cfg.aiMin}% bar${e.reqOk?"":" and it fails a required check"}, so it won't signal.</p>`
       :`It has ${e.bonus} of ${e.total} confluences${e.reqOk?"":" and fails a required check"}; it needs ${S.cfg.minExtras} to signal.</p>`);
   else body+=`Price is near the ${side} range at ${rng}, but ${aiDecides()?`the AI rates it below ${S.cfg.aiMin}%`:`it has ${e.bonus} of ${e.total} confluences`}${e.reqOk?"":" and it fails a required check"}, so it's skipped.</p>`;
-  return body+(Number.isFinite(e.aiP)?`<p class="ai-chance">AI win chance for this range: ${Math.round(e.aiP*100)}% ${aiDecides()?`(needs ${S.cfg.aiMin}%)`:"(watching only)"}</p>`:"")+nextZonesHTML(A)
+  return body+aiLineHTML(e.aiP,e.evProfit,e.novel,e.why,!aiDecides()?"(watching only)":useEV()?`(needs +$${fmt(S.cfg.aiMinEV)})`:`(needs ${S.cfg.aiMin}%)`)+nextZonesHTML(A)
     +`<details class="why"${S.whyOpen?" open":""}><summary>Why: ${e.bonus} of ${e.total} confluences${e.reqOk?"":", a required check fails"}</summary>${checksHTML(e.checks)}</details>`;
 }
 function bindWhy(){const d=document.querySelector('#hero details.why');if(!d)return;d.ontoggle=()=>{S.whyOpen=d.open;};const sm=d.querySelector('summary');if(sm)sm.onclick=()=>{S.whyOpen=!d.open;};}
@@ -1343,23 +1346,33 @@ async function recheckMissed(){
 }
 /* ---------- AI learning ---------- */
 /* Every setup the scanner sees (signalled or not) becomes a paper trade, and the same setup is also paper-traded in 30
-   alternative versions (TP1 distance x entry depth x stop width). From those results it learns three things, each of which
-   must prove itself on the newest 25% of setups it never trained on before it's used:
-   1. which setups win (TP1 before stop) - decides signals
-   2. which trade version earns the most - self-tunes TP1, entry depth and stop
-   3. how likely TP2 and TP3 are - picks the exit plan with the best expected profit */
+   alternative versions. From the results it learns, each part having to prove itself on data it never trained on:
+   1. which setups win: a simple model and an advanced tree model, tested walk-forward through time; the better one is used,
+      its win chances are calibrated so 65% means about 65 in 100, and it notices when the market changes (drift)
+   2. which trade version earns the most (self-tuning)
+   3. how likely TP2 and TP3 are, so it can pick exits and rank setups by expected profit */
 const FEAT=[...CONF.map(cf=>cf.name),"Buy side","London session","London and New York overlap","New York session",
-  "More zone touches","Wider stop","More room to target","Deeper RSI stretch","Heavier pullback volume"];
+  "More zone touches","Wider stop","More room to target","Deeper RSI stretch","Heavier pullback volume",
+  "Higher volatility than normal","Faster approach into the zone","Pin bar","Engulfing candle","Doji","Other reversal candle",
+  "Day of week","Day of week ","Time of day","Time of day ","Longer 1H trend run","Longer 4H trend run","Candle-confirmed entry"];
+const FEAT_GROUP=n=>n.trim();   // the two halves of each time cycle are shown as one item
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function candleType(name){if(!name)return -1;return /pin bar|hammer|shooting star|hanging man/.test(name)?0:/engulfing/.test(name)?1:/doji/.test(name)?2:3;}
 function features(ev,dir,t){
   const f=CONF.map((cf,k)=>ev.flags&(1<<k)?1:0),sn=session(t).name,p=ev.plan,r=ev.rsiNow,v=ev.vRatio;
   f.push(dir===1?1:0,sn==="London session"?1:0,sn.includes("overlap")?1:0,sn==="New York session"?1:0);
   f.push(Math.min(p.z.touches,6)/6,clamp(p.risk/Math.max(1,S.cfg.maxRisk),0,1.5),Math.min(isFinite(p.room)?p.room:20,20)/20,
     isFinite(r)?clamp(dir===1?(50-r)/50:(r-50)/50,-1,1):0,isFinite(v)?Math.min(v,2)/2:0.5);
+  const ct=candleType(ev.candle&&ev.candle.name),dow=((Math.floor(t/86400)+3)%7+(t%86400)/86400)/7,tod=(t%86400)/86400;
+  f.push(Number.isFinite(ev.volPct)?ev.volPct:0.5,Number.isFinite(ev.speed)?clamp(ev.speed,-3,3)/3:0,
+    ct===0?1:0,ct===1?1:0,ct===2?1:0,ct===3?1:0,
+    Math.sin(2*Math.PI*dow),Math.cos(2*Math.PI*dow),Math.sin(2*Math.PI*tod),Math.cos(2*Math.PI*tod),
+    Math.min(ev.h1Run||0,5)/5,Math.min(ev.h4Run||0,5)/5,p.kind==="stop"?1:0);
   return f;
 }
 const sigm=z=>1/(1+Math.exp(-z));
-const predict=(m,x)=>{if(!m||!x||x.length!==m.W.length)return NaN;let z=m.b;for(let j=0;j<x.length;j++)z+=m.W[j]*x[j];return sigm(z);};
+const logit=p=>{p=clamp(p,1e-6,1-1e-6);return Math.log(p/(1-p));};
+const predictLR=(m,x)=>{if(!m||!x||x.length!==m.W.length)return NaN;let z=m.b;for(let j=0;j<x.length;j++)z+=m.W[j]*x[j];return sigm(z);};
 function solveSym(A,bv,d){const M=new Float64Array(A),x=Float64Array.from(bv);
   for(let c=0;c<d;c++){let piv=c;for(let r=c+1;r<d;r++)if(Math.abs(M[r*d+c])>Math.abs(M[piv*d+c]))piv=r;
     if(Math.abs(M[piv*d+c])<1e-12)continue;
@@ -1367,7 +1380,7 @@ function solveSym(A,bv,d){const M=new Float64Array(A),x=Float64Array.from(bv);
     for(let r=c+1;r<d;r++){const f=M[r*d+c]/M[c*d+c];if(!f)continue;for(let k=c;k<d;k++)M[r*d+k]-=f*M[c*d+k];x[r]-=f*x[c];}}
   for(let c=d-1;c>=0;c--){let v=x[c];for(let k=c+1;k<d;k++)v-=M[c*d+k]*x[k];x[c]=Math.abs(M[c*d+c])<1e-12?0:v/M[c*d+c];}
   return x;}
-/* L2-regularised logistic regression (the bias isn't penalised), fitted with Newton's method */
+/* simple model: L2-regularised logistic regression (bias not penalised), fitted with Newton's method */
 function trainLR(X,y,w,lambda=3){
   const n=X.length,d=X[0].length+1,beta=new Float64Array(d),f=new Float64Array(d);
   for(let it=0;it<30;it++){
@@ -1382,23 +1395,116 @@ function trainLR(X,y,w,lambda=3){
     const sc=mx>4?4/mx:1;for(let j=0;j<d;j++)beta[j]+=sc*step[j];
     if(mx<1e-7)break;
   }
-  return {W:Array.from(beta.subarray(1)),b:beta[0]};
+  return {type:"lr",W:Array.from(beta.subarray(1)),b:beta[0]};
 }
+/* advanced model: gradient-boosted decision trees (logistic loss, shallow trees, histogram splits).
+   Learns combinations such as "engulfing candles in London" that the simple model can't. */
+function trainGBM(X,y,w,{trees=60,depth=2,lr=0.15,bins=16,minLeaf=12,lambda=2}={}){
+  const n=X.length,d=X[0].length,edges=[],B=new Uint8Array(n*d);
+  for(let j=0;j<d;j++){const v=X.map(x=>x[j]).sort((a,b)=>a-b),e=[];
+    for(let k=1;k<bins;k++){const q=v[Math.floor(k*n/bins)];if(!e.length||q>e[e.length-1])e.push(q);}
+    edges.push(e);for(let i=0;i<n;i++){let b=0;const xv=X[i][j];while(b<e.length&&xv>e[b])b++;B[i*d+j]=b;}}
+  let sw=0,sy=0;for(let i=0;i<n;i++){sw+=w[i];sy+=w[i]*y[i];}
+  const base=logit(clamp(sy/(sw||1),0.02,0.98)),F=new Float64Array(n).fill(base),g=new Float64Array(n),h=new Float64Array(n),out=[];
+  const leaf=(idx)=>{let G=0,Hs=0;for(const i of idx){G+=g[i];Hs+=h[i];}return {v:G/(Hs+lambda)};};
+  function grow(idx,dep){
+    if(dep>=depth||idx.length<2*minLeaf)return leaf(idx);
+    let best=null;
+    for(let j=0;j<d;j++){const nb=edges[j].length+1;if(nb<2)continue;
+      const G=new Float64Array(nb),Hh=new Float64Array(nb),C=new Uint32Array(nb);
+      for(const i of idx){const b=B[i*d+j];G[b]+=g[i];Hh[b]+=h[i];C[b]++;}
+      let Gt=0,Ht=0,Ct=0;for(let b=0;b<nb;b++){Gt+=G[b];Ht+=Hh[b];Ct+=C[b];}
+      let GL=0,HL=0,CL=0;
+      for(let b=0;b<nb-1;b++){GL+=G[b];HL+=Hh[b];CL+=C[b];const CR=Ct-CL;if(CL<minLeaf||CR<minLeaf)continue;
+        const GR=Gt-GL,HR=Ht-HL,gain=GL*GL/(HL+lambda)+GR*GR/(HR+lambda)-Gt*Gt/(Ht+lambda);
+        if(!best||gain>best.gain)best={gain,j,b};}}
+    if(!best||best.gain<=1e-9)return leaf(idx);
+    const L=[],R=[];for(const i of idx)(B[i*d+best.j]<=best.b?L:R).push(i);
+    return {f:best.j,t:edges[best.j][best.b],l:grow(L,dep+1),r:grow(R,dep+1)};
+  }
+  const all=[...Array(n).keys()];
+  for(let k=0;k<trees;k++){
+    for(let i=0;i<n;i++){const p=sigm(F[i]);g[i]=w[i]*(y[i]-p);h[i]=w[i]*p*(1-p);}
+    const tr=grow(all,0);out.push(tr);
+    for(let i=0;i<n;i++){let nd=tr;while(nd.v===undefined)nd=X[i][nd.f]<=nd.t?nd.l:nd.r;F[i]+=lr*nd.v;}
+  }
+  return {type:"gbm",base,lr,trees:out,d};
+}
+function predictGBM(m,x){if(!m||!x||x.length!==m.d)return NaN;let z=m.base;for(const tr of m.trees){let nd=tr;while(nd.v===undefined)nd=x[nd.f]<=nd.t?nd.l:nd.r;z+=m.lr*nd.v;}return sigm(z);}
+const predictRaw=(m,x)=>!m?NaN:m.type==="gbm"?predictGBM(m,x):predictLR(m,x);
+const predict=predictLR; // simple-model prediction (exit models and explanations use it)
+/* calibrated win chance from the chosen model */
+function winChance(st,x){if(!st||!st.model)return NaN;const p=predictRaw(st.best||st.model,x);if(!Number.isFinite(p))return NaN;
+  const c=st.cal;return c?sigm(c.a*logit(p)+c.b):p;}
+
 const HALF_LIFE=45*86400;
-const recencyW=(list,now)=>list.map(s=>Math.pow(0.5,Math.max(0,now-s.t)/HALF_LIFE));
+const recencyW=(list,now,hl=HALF_LIFE)=>list.map(s=>Math.pow(0.5,Math.max(0,now-s.t)/hl));
 const logLoss=(ps,ys)=>ps.reduce((a,p,i)=>a-(ys[i]?Math.log(clamp(p,1e-6,1)):Math.log(clamp(1-p,1e-6,1))),0)/ps.length;
-const fitOn=(list,lab,now)=>trainLR(list.map(s=>s.x),list.map(lab),recencyW(list,now));
-function validate(lab){
-  if(lab.length<60)return {proven:false,reason:`Needs at least 60 resolved setups to test itself (has ${lab.length}).`};
-  const cut=Math.floor(lab.length*0.75),tr=lab.slice(0,cut),te=lab.slice(cut),now=tr.at(-1).t;
-  const m=fitOn(tr,s=>s.y,now);
-  const base=tr.reduce((a,s)=>a+s.y,0)/tr.length,ps=te.map(s=>predict(m,s.x)),ys=te.map(s=>s.y);
-  const llM=logLoss(ps,ys),llB=logLoss(ps.map(()=>base),ys);
-  const grp=list=>({n:list.length,rate:list.length?list.reduce((a,s)=>a+s.y,0)/list.length:NaN,r:list.length?list.reduce((a,s)=>a+(s.r||0),0)/list.length:NaN});
-  const thr=S.cfg.aiMin/100,ai=grp(te.filter((s,i)=>ps[i]>=thr)),rule=grp(te.filter(s=>s.bonus>=S.cfg.minExtras)),all=grp(te);
-  const proven=llM<llB*0.99&&ai.n>=5&&ai.rate>=all.rate&&(isNaN(rule.rate)||rule.n<5||ai.r>=rule.r);
-  return {proven,llM,llB,ai,rule,all,nTest:te.length,
-    reason:proven?"":llM>=llB*0.99?"Its predictions aren't yet better than guessing the average win rate.":ai.n<5?"Too few unseen setups passed its win-chance bar to judge it.":"Its picks haven't beaten the confluence rule on unseen setups yet."};
+const fitOn=(list,lab,now,hl,lambda=3)=>trainLR(list.map(s=>s.x),list.map(lab),recencyW(list,now,hl),lambda);
+const fitGBMOn=(list,lab,now,hl)=>trainGBM(list.map(s=>s.x),list.map(lab),recencyW(list,now,hl));
+
+/* Walk-forward test: split lessons into 5 time blocks; train on blocks 1..k, predict block k+1, for k = 1..4.
+   Every prediction is made on setups that happened after everything the model trained on. */
+async function walkForward(lab){
+  const n=lab.length,K=5;
+  if(n<80)return {proven:false,provenEV:false,n,reason:`Needs at least 80 resolved setups for its walk-forward test (has ${n}).`};
+  const cut=k=>Math.floor(n*k/K),folds=[1,2,3,4].map(k=>({tr:lab.slice(0,cut(k)),te:lab.slice(cut(k),k===4?n:cut(k+1))}));
+  const oof=(fit,pred)=>{const ps=[],ys=[],per=[];for(const f of folds){const now=f.tr.at(-1).t,m=fit(f.tr,now),base=f.tr.reduce((a,s)=>a+s.y,0)/f.tr.length;
+      const p=f.te.map(s=>pred(m,s.x)),y=f.te.map(s=>s.y);ps.push(...p);ys.push(...y);per.push({n:f.te.length,ll:logLoss(p,y),llB:logLoss(p.map(()=>base),y)});}return {ps,ys,per};};
+  // how much to favour recent lessons, and how cautious to be: pick the pair that predicts unseen periods best
+  // (scored half on all periods, half on the newest ones, so it adapts when the market changes)
+  let bestHL=HALF_LIFE,bestLam=3,bestScore=Infinity,lr=null;const longMem={};
+  for(const hl of [20,45,90].map(d=>d*86400))for(const lam of [3,10,30]){
+    const r=oof((tr,now)=>fitOn(tr,s=>s.y,now,hl,lam),predictLR),h=Math.floor(r.ps.length/2);
+    const score=0.5*logLoss(r.ps,r.ys)+0.5*logLoss(r.ps.slice(-h),r.ys.slice(-h));
+    if(hl===90*86400)longMem[lam]=r;
+    if(score<bestScore-1e-9){bestScore=score;bestHL=hl;bestLam=lam;lr=r;}await yieldUI();}
+  let gb=null;if(n>=200){gb=oof((tr,now)=>fitGBMOn(tr,s=>s.y,now,bestHL),predictGBM);await yieldUI();}
+  const llLR=logLoss(lr.ps,lr.ys),llGB=gb?logLoss(gb.ps,gb.ys):Infinity,useGB=gb&&llGB<llLR*0.99,R=useGB?gb:lr;
+  // calibration: map raw predictions onto actual win rates (Platt scaling fitted on the walk-forward predictions)
+  const cm=trainLR(R.ps.map(p=>[logit(p)]),R.ys,R.ys.map(()=>1),0.01),cal={a:cm.W[0],b:cm.b};
+  const pc=R.ps.map(p=>sigm(cal.a*logit(p)+cal.b));
+  const base=lab.slice(0,cut(4)).reduce((a,s)=>a+s.y,0)/cut(4),testS=folds.flatMap(f=>f.te);
+  const llM=logLoss(pc,R.ys),llB=logLoss(pc.map(()=>base),R.ys);
+  const better=R.per.slice(1).filter(f=>f.ll<f.llB).length;   // period 1 is a warm-up: it trains on very few lessons
+  const rel=[0,0.2,0.4,0.6,0.8].map(lo=>{const ix=pc.map((p,i)=>i).filter(i=>pc[i]>=lo&&pc[i]<lo+0.2+(lo===0.8?1e-9:0));
+    return {lo,n:ix.length,pred:ix.length?ix.reduce((a,i)=>a+pc[i],0)/ix.length:NaN,act:ix.length?ix.reduce((a,i)=>a+R.ys[i],0)/ix.length:NaN};});
+  const grp=ix=>({n:ix.length,rate:ix.length?ix.reduce((a,i)=>a+testS[i].y,0)/ix.length:NaN,r:ix.length?ix.reduce((a,i)=>a+(testS[i].r||0),0)/ix.length:NaN});
+  const idx=testS.map((s,i)=>i),thr=S.cfg.aiMin/100;
+  const ai=grp(idx.filter(i=>pc[i]>=thr)),rule=grp(idx.filter(i=>testS[i].bonus>=S.cfg.minExtras)),all=grp(idx);
+  const proven=llM<llB*0.99&&better>=2&&ai.n>=10&&ai.rate>=all.rate&&(isNaN(rule.r)||rule.n<5||ai.r>=rule.r);
+  // expected-profit choice, tested the same way: TP2/TP3 models per block, profit of the exit plan it would have picked
+  let evRes=null;
+  const full=s=>Number.isFinite(s.hit)&&Number.isFinite(s.pC)&&Number.isFinite(s.risk);
+  if(testS.filter(full).length>=40){
+    const pick=[],rulePick=[];let k0=0;
+    for(const f of folds){const now=f.tr.at(-1).t,tr=f.tr.filter(full);
+      const st={model:fitOn(f.tr,s=>s.y,now,bestHL,bestLam),m2:tr.length>=20?fitOn(tr,s=>s.hit>=2?1:0,now,bestHL):null,m3:tr.length>=20?fitOn(tr,s=>s.hit>=3?1:0,now,bestHL):null};
+      for(let i=0;i<f.te.length;i++){const s=f.te[i],p1=pc[k0+i];if(!full(s)||!st.m2)continue;const a=exitAdvice(st,s.x,s,p1);
+        if(a.ev[a.pick]>=S.cfg.aiMinEV)pick.push(s["p"+a.pick]);if(s.bonus>=S.cfg.minExtras)rulePick.push(s.pB);}
+      k0+=f.te.length;await yieldUI();}
+    const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;
+    evRes={n:pick.length,avg:avg(pick),ruleN:rulePick.length,ruleAvg:avg(rulePick)};
+    evRes.proven=evRes.n>=10&&evRes.avg>0&&(evRes.ruleN<5||evRes.avg>=evRes.ruleAvg+0.05);
+  }
+  // drift: measured with a long-memory model that keeps trusting older patterns. If it suddenly predicts the newest
+  // period clearly worse than earlier ones, what used to work has stopped working.
+  const ratio=f=>f.ll/Math.max(f.llB,1e-6),D=(longMem[bestLam]||R).per,early=D.slice(1,3).reduce((a,f)=>a+ratio(f),0)/2,late=ratio(D[3]);
+  const drift=late>1&&late>early+0.08;
+  return {proven,provenEV:!!(evRes&&evRes.proven),ev:evRes,n,nTest:testS.length,llM,llB,better,folds:R.per,rel,ai,rule,all,cal,hl:bestHL,lambda:bestLam,useGB,llLR,llGB,drift,
+    reason:proven?"":llM>=llB*0.99?"Its predictions aren't yet better than guessing the average win rate.":better<2?`It only beat guessing in ${better} of the last 3 time periods, so it isn't consistent enough yet.`:ai.n<10?"Too few unseen setups passed its win-chance bar to judge it.":"Its picks haven't beaten the confluence rule on unseen setups yet."};
+}
+/* confidence check: how far a setup is from the lessons it learned from (average distance to its 10 nearest) */
+function knnDist(x,pool,skip){const ds=[];for(const s of pool){if(s===skip||!s.x||s.x.length!==x.length)continue;let d=0;for(let j=0;j<x.length;j++){const q=x[j]-s.x[j];d+=q*q;}ds.push(d);}
+  if(ds.length<10)return NaN;ds.sort((a,b)=>a-b);let m=0;for(let k=0;k<10;k++)m+=Math.sqrt(ds[k]);return m/10;}
+function noveltyLimit(lab){const pick=lab.length>300?lab.filter((s,i)=>i%Math.ceil(lab.length/300)===0):lab;
+  const d=pick.map(s=>knnDist(s.x,lab,s)).filter(Number.isFinite).sort((a,b)=>a-b);return d.length?d[Math.floor(d.length*0.97)]:Infinity;}
+/* explanation: which inputs push this setup's win chance up or down, compared with an average lesson */
+function explain(st,x){
+  if(!st||!st.model||!st.mx)return null;const m=st.model,by={};
+  for(let j=0;j<x.length;j++){const c=m.W[j]*(x[j]-st.mx[j]),k=FEAT_GROUP(FEAT[j]);by[k]=(by[k]||0)+c;}
+  const items=Object.entries(by).filter(([k,c])=>Math.abs(c)>=0.05).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+  return {up:items.filter(i=>i[1]>0).slice(0,3).map(i=>i[0]),down:items.filter(i=>i[1]<0).slice(0,2).map(i=>i[0])};
 }
 
 /* ----- trade versions for self-tuning ----- */
@@ -1426,23 +1532,23 @@ function exitText(k,s){const n=s?tpList(s).length:3;
   if(k==="A"||n===1)return "Close everything at TP1";
   if(k==="B")return n===3?"Close a third at each target":"Close a third at TP1 and the rest at TP2";
   return `Close half at TP1, let half run to TP${n}`;}
-function exitAdvice(st,x,s){
+function exitAdvice(st,x,s,p1o){
   if(!st||!st.model||!st.m2||!st.m3)return null;
-  let p1=predict(st.model,x),p2=Math.min(p1,predict(st.m2,x)),p3=Math.min(p2,predict(st.m3,x));
+  let p1=Number.isFinite(p1o)?p1o:predict(st.model,x),p2=Math.min(p1,predict(st.m2,x)),p3=Math.min(p2,predict(st.m3,x));
   const en=s.entry,d1=Math.abs(s.tp1-en),d2=Math.abs(s.tp2-en),d3=Math.abs(s.tp3-en),L=(1-p1)*s.risk;
   const ev={A:p1*d1-L,B:p1*d1/3+p2*d2/3+p3*d3/3-L,C:p1*d1/2+p3*d3/2-L};
   const pick=Object.keys(ev).sort((a,b)=>ev[b]-ev[a])[0];
   return {pick,ev,p1,p2,p3};
 }
 
-const AI={samples:store.get("xau_ai_samples_v2",[]),state:store.get("xau_ai_model_v2",null),busy:false,timer:null};
+const AI={samples:store.get("xau_ai_samples_v3",[]),state:store.get("xau_ai_model_v3",null),busy:false,timer:null};
 const r2=x=>Number.isFinite(x)?Math.round(x*100)/100:x,r3=x=>Number.isFinite(x)?Math.round(x*1000)/1000:x;
 function compactSample(s){for(const k of ["lo","hi","mid","entry","sl","tp1","tp2","tp3","off","pA","pB","pC"])s[k]=r2(s[k]);if(Number.isFinite(s.r))s.r=r3(s.r);if(Array.isArray(s.x))s.x=s.x.map(r3);
   if(s.g){s.g.zlo=r2(s.g.zlo);s.g.zhi=r2(s.g.zhi);s.g.buf=r2(s.g.buf);if(s.g.opp!=null)s.g.opp=r2(s.g.opp);}return s;}
 function saveSamples(){
   AI.samples.forEach(compactSample);
   if(AI.samples.length>4000)AI.samples=AI.samples.slice(-4000);
-  for(let tries=0;tries<5;tries++){if(store.set("xau_ai_samples_v2",AI.samples)){AI.full=false;return;}
+  for(let tries=0;tries<5;tries++){if(store.set("xau_ai_samples_v3",AI.samples)){AI.full=false;return;}
     AI.samples=AI.samples.slice(Math.floor(AI.samples.length*0.2));AI.full=true;}
 }
 function aiDecides(){const m=S.cfg.aiMode||"auto";return !!(AI.state&&AI.state.model)&&(m==="always"||(m==="auto"&&AI.state.val&&AI.state.val.proven));}
@@ -1521,23 +1627,56 @@ function exitModels(){
   }
   return {m2,m3,val};
 }
-function retrain(){
-  const lab=AI.samples.filter(s=>s.y===0||s.y===1).sort((a,b)=>a.t-b.t),prev=AI.state||{};
-  const st={n:lab.length,wins:lab.filter(s=>s.y===1).length,trainedAt:nowS(),version:(prev.version||0)+1,tune:tune()};
-  if(lab.length<20){st.model=null;st.val={proven:false,reason:`Needs at least 20 resolved setups to start learning (has ${lab.length}).`};}
-  else{st.model=fitOn(lab,s=>s.y,nowS());st.val=validate(lab);Object.assign(st,(({m2,m3,val})=>({m2,m3,exitVal:val}))(exitModels()));}
-  AI.state=st;store.set("xau_ai_model_v2",AI.state);renderAI();if(S.A)runAnalysis();
+let retraining=false,retrainAgain=false;
+async function retrain(){
+  if(retraining){retrainAgain=true;return;}retraining=true;
+  try{
+    const lab=AI.samples.filter(s=>(s.y===0||s.y===1)&&Array.isArray(s.x)&&s.x.length===FEAT.length).sort((a,b)=>a.t-b.t),prev=AI.state||{};
+    const st={n:lab.length,wins:lab.filter(s=>s.y===1).length,trainedAt:nowS(),version:(prev.version||0)+1,tune:tune()};
+    if(lab.length<20){st.model=null;st.val={proven:false,reason:`Needs at least 20 resolved setups to start learning (has ${lab.length}).`};}
+    else{
+      const wf=await walkForward(lab),hl=wf.hl||HALF_LIFE,now=nowS();
+      st.val=wf;st.hl=hl;st.cal=wf.cal||null;
+      st.model=fitOn(lab,s=>s.y,now,hl,wf.lambda||3);
+      st.best=wf.useGB?fitGBMOn(lab,s=>s.y,now,hl):null;
+      const w=recencyW(lab,now,hl),sw=w.reduce((a,b)=>a+b,0)||1;st.mx=FEAT.map((_,j)=>lab.reduce((a,s,i)=>a+s.x[j]*w[i],0)/sw);
+      await yieldUI();
+      Object.assign(st,(({m2,m3,val})=>({m2,m3,exitVal:val}))(exitModels()));
+      st.novel=noveltyLimit(lab);
+    }
+    AI.state=st;store.set("xau_ai_model_v3",AI.state);renderAI();if(S.A)runAnalysis();
+  }finally{retraining=false;if(retrainAgain){retrainAgain=false;scheduleRetrain();}}
 }
 const smartExitsOn=()=>S.cfg.smartExit!==false&&AI.state&&AI.state.exitVal&&AI.state.exitVal.proven;
 /* hook used by live analysis: score the current setup, collect it as a lesson, and let a proven model decide the grade */
+/* choose trades by expected profit once that has proven itself (or when you pick it) */
+function useEV(){const g=S.cfg.aiGate||"auto",v=AI.state&&AI.state.val;return g==="profit"||(g==="auto"&&!!(v&&v.provenEV));}
 function aiApply(A){
   const e=A.ev;if(!e||!e.plan)return;
+  const st=AI.state;
   e.x=features(e,A.dir,A.t);
-  e.aiP=AI.state&&AI.state.model?predict(AI.state.model,e.x):NaN;
-  e.exit=exitAdvice(AI.state,e.x,e.plan);
+  e.aiP=winChance(st,e.x);
+  e.exit=exitAdvice(st,e.x,e.plan,e.aiP);
+  e.evProfit=e.exit?e.exit.ev[e.exit.pick]:NaN;
+  if(st&&st.model&&Number.isFinite(st.novel)){e.dist=knnDist(e.x,AI.samples.filter(s=>(s.y===0||s.y===1)&&s.x&&s.x.length===FEAT.length));e.novel=Number.isFinite(e.dist)&&e.dist>st.novel;}
+  e.why=explain(st,e.x);
   if(e.stage==="setup"&&e.baseOk&&addSample(e,A.dir,A.t,A.off,"live"))saveSamples();
-  if(e.stage==="setup"&&aiDecides())e.grade=e.reqOk&&e.aiP>=S.cfg.aiMin/100?"A":"B";
+  if(e.stage==="setup"&&aiDecides()){
+    if(e.novel)e.grade=e.reqOk&&e.bonus>=S.cfg.minExtras?"A":"B";           // unlike anything it has seen: the rules decide
+    else if(useEV())e.grade=e.reqOk&&e.evProfit>=S.cfg.aiMinEV&&e.aiP>=0.4?"A":"B";
+    else e.grade=e.reqOk&&e.aiP>=S.cfg.aiMin/100?"A":"B";
+  }
   resolveSamples();
+}
+/* the AI's view of a setup, shown on signals and on the setup being watched */
+function aiLineHTML(p,evp,novel,why,needs){
+  if(!Number.isFinite(p))return "";
+  const parts=[`AI win chance ${Math.round(p*100)}%`];
+  if(Number.isFinite(evp))parts.push(`expected ${evp>=0?"+":"−"}$${fmt(Math.abs(evp))} per 0.01 lot`);
+  let h=`<p class="ai-chance">${parts.join(", ")}${needs?` <span class="muted small">${needs}</span>`:""}</p>`;
+  if(novel)h+=`<p class="small muted">Unusual setup: the AI has seen few like this, so the confluence rules decide instead.</p>`;
+  if(why&&(why.up.length||why.down.length))h+=`<p class="small">${why.up.length?`<span class="up">AI likes:</span> ${why.up.map(esc).join(", ")}. `:""}${why.down.length?`<span class="dn">Worries:</span> ${why.down.map(esc).join(", ")}.`:""}</p>`;
+  return h;
 }
 async function learnHistory(){
   if(AI.busy){BT.abort=true;return;}
@@ -1572,11 +1711,13 @@ function renderAI(){
   const v=st&&st.val,decides=aiDecides(),T=st&&st.tune,X=st&&st.exitVal,E=eff();
   const badge=(on,txtOn,txtOff)=>`<span class="ai-badge${on?" on":""}">${on?txtOn:txtOff}</span>`;
   const mode=S.cfg.aiMode||"auto";
+  const gate=S.cfg.aiGate||"auto";
   let proof="";
-  if(v&&v.ai)proof=`<p class="small">On the newest ${v.nTest} setups it never trained on, its picks at ${S.cfg.aiMin}% or higher reached TP1 <b>${pct(v.ai.rate)}</b> of the time (${v.ai.n} setups, ${rTxt(v.ai.r)} average). The confluence rule managed <b>${pct(v.rule.rate)}</b> (${v.rule.n} setups, ${rTxt(v.rule.r)}), and all setups together ${pct(v.all.rate)}.</p>`;
+  if(v&&v.ai)proof=`<p class="small">Walk-forward test: trained on the past and predicted the next stretch, four times through ${v.n} setups. It beat guessing in <b>${v.better} of the last 3</b> periods, using the <b>${v.useGB?"advanced tree model":"simple model"}</b>${v.useGB?` (it predicted ${Math.round((1-v.llGB/v.llLR)*100)}% better than the simple one)`:""}. A lesson's weight halves every ${Math.round(v.hl/86400)} days.</p>`
+    +(v.drift?`<p class="bt-warn">The market has changed recently: the newest period was predicted noticeably worse than earlier ones. The AI is favouring recent setups and will need fresh lessons to catch up.</p>`:"")+`<div class="tblwrap"><table><thead><tr><th>When it said</th><th class="r">Setups</th><th class="r">Actually won</th></tr></thead><tbody>${v.rel.filter(r=>r.n>=5).map(r=>`<tr><td>${Math.round(r.lo*100)}–${Math.round(r.lo*100+20)}% (avg ${pct(r.pred)})</td><td class="r num">${r.n}</td><td class="r num">${pct(r.act)}</td></tr>`).join("")}</tbody></table></div><p class="small muted">Calibration check on unseen setups: the closer the two percentages, the more honest its win chances.</p>`+`<p class="small">On the newest ${v.nTest} setups it never trained on, its picks at ${S.cfg.aiMin}% or higher reached TP1 <b>${pct(v.ai.rate)}</b> of the time (${v.ai.n} setups, ${rTxt(v.ai.r)} average). The confluence rule managed <b>${pct(v.rule.rate)}</b> (${v.rule.n} setups, ${rTxt(v.rule.r)}), and all setups together ${pct(v.all.rate)}.</p>`;
   let bars="";
   if(st&&st.model){const W=st.model.W,mx=Math.max(...W.map(Math.abs),1e-6);
-    const order=W.map((w,i)=>({w,i})).sort((a,b)=>b.w-a.w);
+    const order=W.map((w,i)=>({w,i})).filter(o=>!/^(Day of week|Time of day)/.test(FEAT[o.i])).sort((a,b)=>b.w-a.w);
     bars=`<div class="ai-bars">${order.map(o=>`<div class="ai-row"><span class="ai-name">${esc(FEAT[o.i])}</span><span class="ai-track"><span class="ai-fill ${o.w>=0?"pos":"neg"}" style="width:${(Math.abs(o.w)/mx*50).toFixed(1)}%;${o.w>=0?"left:50%":"right:50%"}"></span></span><span class="ai-val num ${o.w>=0?"up":"dn"}">${o.w>=0?"+":"−"}${Math.abs(o.w).toFixed(2)}</span></div>`).join("")}</div>
       <p class="small muted">Bars to the right raise its win chance, bars to the left lower it. Longer bars matter more.</p>`;}
   const tuneHTML=!T?'<p class="small muted">Starts after its first training.</p>':`
@@ -1605,7 +1746,13 @@ function renderAI(){
             <option value="assist"${mode==="assist"?" selected":""}>Only show its win chance</option>
             <option value="always"${mode==="always"?" selected":""}>Always decide signals</option></select></label>
           <label>Minimum win chance for a signal (%)<input id="aiMin" type="number" min="40" max="90" step="1" value="${S.cfg.aiMin}"></label>
+          <label>Choose trades by<select id="aiGate">
+            <option value="auto"${gate==="auto"?" selected":""}>Expected profit once proven, else win chance</option>
+            <option value="chance"${gate==="chance"?" selected":""}>Win chance</option>
+            <option value="profit"${gate==="profit"?" selected":""}>Expected profit</option></select></label>
+          <label>Minimum expected profit per 0.01 lot ($)<input id="aiMinEV" type="number" min="0" max="10" step="0.1" value="${S.cfg.aiMinEV}"></label>
         </div>
+        <p class="small muted">${v&&v.ev?`Expected-profit choice on unseen setups: <b>${money(v.ev.avg)}</b> per trade over ${v.ev.n} trades, against ${money(v.ev.ruleAvg)} for the confluence rule. ${v.provenEV?"Proven.":"Not proven yet."}`:"Expected-profit choice is tested once there are enough filled setups with full results."} ${decides?(useEV()?"Signals are chosen by expected profit.":"Signals are chosen by win chance."):""}</p>
         <p class="small muted">${decides?"Right now the AI chooses which setups become signals. Your required checks and must-have filters still apply.":"Right now signals use the confluence rule. The AI's win chance is shown on each setup."}</p>
         <h3 style="margin-top:22px">2. Self-tuning the trade</h3>
         <p class="small muted">Every setup is also paper-traded in 30 versions: TP1 at $4 to $8, entry at the edge or 25% or 50% into the range, and a standard or wider stop.</p>
@@ -1626,6 +1773,8 @@ function renderAI(){
     </div>`;
   $("#aiMode").onchange=e=>{S.cfg.aiMode=e.target.value;store.set("xau_scalp_cfg_v1",S.cfg);renderAI();if(S.A)runAnalysis();};
   $("#aiMin").onchange=e=>{S.cfg.aiMin=clamp(+e.target.value||60,40,90);store.set("xau_scalp_cfg_v1",S.cfg);retrain();};
+  $("#aiGate").onchange=e=>{S.cfg.aiGate=e.target.value;store.set("xau_scalp_cfg_v1",S.cfg);renderAI();if(S.A)runAnalysis();};
+  $("#aiMinEV").onchange=e=>{S.cfg.aiMinEV=clamp(+e.target.value||0.5,0,10);store.set("xau_scalp_cfg_v1",S.cfg);retrain();};
   $("#selfTune").onchange=e=>{S.cfg.selfTune=e.target.checked;store.set("xau_scalp_cfg_v1",S.cfg);renderAI();if(S.A)runAnalysis();};
   $("#smartExit").onchange=e=>{S.cfg.smartExit=e.target.checked;store.set("xau_scalp_cfg_v1",S.cfg);renderAI();if(S.A)runAnalysis();};
   $("#aiLearn").onclick=learnHistory;
@@ -1634,7 +1783,7 @@ function renderAI(){
   $("#aiImport").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());let n=0;
     for(const s of (j.samples||[]))if(Array.isArray(s.x)&&s.x.length===FEAT.length&&!nearDup(AI.samples,s.dir,s.mid,s.t)){AI.samples.push(s);n++;}
     AI.samples.sort((a,b)=>a.t-b.t);saveSamples();retrain();alert(`Imported ${n} lessons.`);}catch(err){alert("That file isn't a scalper brain export.");}};
-  $("#aiReset").onclick=()=>{if(!confirm("Delete everything the AI has learned?"))return;AI.samples=[];AI.state=null;AI.msg="";saveSamples();store.set("xau_ai_model_v2",null);retrain();};
+  $("#aiReset").onclick=()=>{if(!confirm("Delete everything the AI has learned?"))return;AI.samples=[];AI.state=null;AI.msg="";saveSamples();store.set("xau_ai_model_v3",null);retrain();};
 }
 
 /* ---------- start ---------- */
