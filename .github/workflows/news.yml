@@ -1,0 +1,31 @@
+# Downloads the ForexFactory calendar every hour and saves it as news.json,
+# so the scalper page can read high-impact news without the browser blocking it.
+name: Update news calendar
+
+on:
+  schedule:
+    - cron: "17 * * * *"   # every hour at :17
+  workflow_dispatch:        # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download this week's calendar
+        run: |
+          curl -fsSL --retry 3 --retry-delay 20 -A "Mozilla/5.0 (MMFX news updater)" \
+            "https://nfs.faireconomy.media/ff_calendar_thisweek.json" -o news.tmp
+          python3 -c "import json,sys; d=json.load(open('news.tmp')); sys.exit(0 if isinstance(d,list) and d else 1)"
+          mv news.tmp news.json
+
+      - name: Save it if it changed
+        run: |
+          git config user.name "mmfx-news-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add news.json
+          git diff --cached --quiet || (git commit -m "Update news calendar" && git push)
