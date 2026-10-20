@@ -135,6 +135,16 @@ tr.bt-k{cursor:pointer} tr.bt-k.sel td{background:rgba(63,216,255,.09)} tr.bt-k.
 .bt-warn{background:rgba(255,51,85,.08);border:1px solid rgba(255,51,85,.35);border-radius:4px;padding:8px 12px;font-size:14px}
 @media (max-width:1000px){.bt-controls{grid-template-columns:1fr}.bt-grid{grid-template-columns:1fr}}
 
+/* news */
+/* news */
+.banner.newsalert{background:rgba(255,51,85,.12);border:1px solid rgba(255,51,85,.55);box-shadow:0 0 22px rgba(255,51,85,.18);align-items:center;gap:14px;justify-content:space-between;font-weight:600}
+.banner.newsalert button{flex:none;padding:6px 12px;font-size:13px}
+.news-warn{margin:10px 0 0;padding:10px 12px;border:1px solid rgba(255,51,85,.5);border-radius:4px;background:rgba(255,51,85,.08);font-size:14px}
+#newsCard table td{white-space:normal}
+tr.news-now td{color:var(--sell);font-weight:600}
+tr.news-soon td{color:var(--cyan)}
+tr.news-done td{color:var(--muted)}
+
 /* next zones + why */
 .why{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .why summary{cursor:pointer;font-size:14px;color:var(--cyan);list-style:none;display:flex;align-items:center;gap:8px}
@@ -306,6 +316,7 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 <main>
   <div class="banner err" id="banner" role="alert"></div>
   <div class="banner warn" id="offsetBanner"></div>
+  <div class="banner newsalert" id="newsBanner" role="alert"><span></span><button type="button" id="newsBannerClose">Dismiss</button></div>
 
   <section class="panel hero" id="hero" aria-live="polite"></section>
 
@@ -322,6 +333,7 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
     <div id="chart"></div>
   </section>
 
+  <section class="panel full" id="newsCard"></section>
   <section class="full tri">
     <div class="panel" id="trendCard"></div>
     <div class="panel" id="volCard"></div>
@@ -394,6 +406,11 @@ footer{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
     <span class="hint">Uses the ForexFactory calendar (red, high-impact USD events such as CPI, jobs reports and Fed decisions).</span>
   </div>
   <div class="field">
+    <label for="newsAlert">Alert before high-impact USD news</label>
+    <select id="newsAlert"><option value="0">Off</option><option value="5">5 minutes before</option><option value="15">15 minutes before</option><option value="30">30 minutes before</option></select>
+    <span class="hint">Plays a sound, shows a banner and a notification. If you have a trade open, it reminds you to tighten your stop or bank some profit.</span>
+  </div>
+  <div class="field">
     <label for="minExtras">Confluences needed for an A-grade signal</label>
     <select id="minExtras"><option value="4">4 of 13</option><option value="5">5 of 13</option><option value="6">6 of 13</option><option value="7">7 of 13 (stricter)</option><option value="8">8 of 13 (strictest)</option></select>
   </div>
@@ -447,7 +464,7 @@ const PIVOT_K={D1:3,H4:3,H1:3,M15:3,M5:3,M1:2};
 const MIN_BARS={D1:30,H4:60,H1:100,M15:100,M5:100,M1:100};
 /* history needed before a backtest or learning period starts */
 const WARM={D1:210*86400,H4:310*14400,H1:320*3600,M15:420*900,M5:520*300,M1:520*60};
-const DEF={cfgVer:2,entryMode:"limit",newsMins:30,spread:0.35,xmAdj:0,manualOffT:0,selfTune:true,smartExit:true,aiMode:"auto",aiMin:60,must:[],t1:6,t2:8,t3:10,maxRisk:4,minExtras:6,sound:true,offMode:"none",manualOff:0,tdKey:""};
+const DEF={cfgVer:2,entryMode:"limit",newsMins:30,newsAlert:15,spread:0.35,xmAdj:0,manualOffT:0,selfTune:true,smartExit:true,aiMode:"auto",aiMin:60,must:[],t1:6,t2:8,t3:10,maxRisk:4,minExtras:6,sound:true,offMode:"none",manualOff:0,tdKey:""};
 const S={raw:{},last:{},D1:null,rawPrice:null,priceT:0,A:null,tf:"M5",err:null,lastOk:0,wsGen:0,autoOff:null,autoOffT:0,
   log:store.get("xau_scalp_log_v2",[]),cfg:Object.assign({},DEF,store.get("xau_scalp_cfg_v1",{}))};
 /* settings from before the price-action update: confluences changed, so reset the threshold and drop retired filters */
@@ -702,14 +719,42 @@ function zoneTests(z,bars){
 }
 /* High-impact USD news from the ForexFactory calendar feed (the book's news rule) */
 const NEWS={cal:store.get("xau_news",{t:0,list:[]}),err:null,busy:false};
+/* Where the calendar comes from, in order:
+   1. news.json in your own GitHub repository, refreshed hourly by the included GitHub Action. Browsers are allowed to read it.
+   2. ForexFactory directly (works where the browser allows it, and always on a server).
+   3. A public relay, as a last resort.
+   A copy whose events are all more than 3 days old is treated as stale and skipped. */
+const FF_URL="https://nfs.faireconomy.media/ff_calendar_thisweek.json";
+function newsSources(){
+  const out=[];
+  try{const h=location.hostname,parts=location.pathname.split("/").filter(Boolean);
+    if(/\.github\.io$/i.test(h)){const user=h.split(".")[0],repo=parts[0]||`${user}.github.io`;
+      out.push({name:"your GitHub calendar",url:`https://raw.githubusercontent.com/${user}/${repo}/main/news.json`});}
+    if(/^https?:$/.test(location.protocol))out.push({name:"your site's calendar",url:new URL("news.json",location.href).href});
+  }catch(e){}
+  out.push({name:"ForexFactory",url:FF_URL});
+  out.push({name:"a public relay",url:"https://api.allorigins.win/raw?url="+encodeURIComponent(FF_URL)});
+  return out;
+}
+function parseCalendar(j){
+  if(!Array.isArray(j))throw new Error("not a calendar");
+  const all=j.map(e=>({t:Math.floor(Date.parse(e&&e.date)/1000),e})).filter(x=>Number.isFinite(x.t));
+  if(!all.length)throw new Error("empty calendar");
+  if(Math.max(...all.map(x=>x.t))<nowS()-3*86400)throw new Error("stale calendar");
+  return all.filter(x=>x.e.country==="USD"&&x.e.impact==="High").map(({t,e})=>({t,title:String(e.title||"USD news"),forecast:e.forecast?String(e.forecast):"",previous:e.previous?String(e.previous):""}));
+}
 async function loadNews(){
   if(NEWS.busy||(nowS()-NEWS.cal.t<7200&&NEWS.cal.t))return;NEWS.busy=true;
-  try{const j=await (await fetch("https://nfs.faireconomy.media/ff_calendar_thisweek.json")).json();
-    if(!Array.isArray(j))throw new Error("bad feed");
-    NEWS.cal={t:nowS(),list:j.filter(e=>e.country==="USD"&&e.impact==="High").map(e=>({t:Math.floor(Date.parse(e.date)/1000),title:String(e.title||"USD news")})).filter(e=>Number.isFinite(e.t))};
-    store.set("xau_news",NEWS.cal);NEWS.err=null;}
-  catch(e){NEWS.err="The news calendar couldn't be loaded, so the news pause is off. Check ForexFactory before trading.";NEWS.cal.t=nowS()-6600;}
-  finally{NEWS.busy=false;}
+  try{
+    for(const src of newsSources()){
+      try{const r=await fetch(src.url,{cache:"no-store"});if(!r.ok)continue;
+        const list=parseCalendar(await r.json());
+        NEWS.cal={t:nowS(),list,src:src.name};store.set("xau_news",NEWS.cal);NEWS.err=null;return;}
+      catch(e){}
+    }
+    NEWS.err="The news calendar couldn't be loaded, so the news pause is off. Check ForexFactory before trading, and see the README to switch on the hourly news updater.";
+    NEWS.cal.t=nowS()-6600;
+  }finally{NEWS.busy=false;}
 }
 function newsNear(t){const w=(S.cfg.newsMins??30)*60;if(!w)return null;return NEWS.cal.list.find(e=>Math.abs(e.t-t)<=w)||null;}
 function nextNews(t){return NEWS.cal.list.filter(e=>e.t>=t-1800).sort((a,b)=>a.t-b.t)[0]||null;}
@@ -720,6 +765,59 @@ function confirmPlan(p,cd,H){
   const room=p.g.opp==null?Infinity:side*(p.g.opp-entry);
   const tp=[E.t1,E.t2,E.t3].map(d=>entry+side*Math.min(d,Math.max(room,E.t1)));
   return {...p,kind:"stop",entry,sl,risk,worst:risk,tp1:tp[0],tp2:tp[1],tp3:tp[2],room,tradable:room>=E.t1&&risk<=c.maxRisk+1e-9,candle:cd};
+}
+
+/* ---------- today's news, alerts before each event, warnings on open trades ---------- */
+const sameLocalDay=(a,b)=>new Date(a*1000).toDateString()===new Date(b*1000).toDateString();
+const hm=t=>new Date(t*1000).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+function inMin(sec){sec=Math.max(0,Math.round(sec/60));return sec<60?`${sec} min`:`${Math.floor(sec/60)}h ${String(sec%60).padStart(2,"0")}m`;}
+const newsId=e=>`${e.t}-${e.title}`;
+/* the news event an open trade should worry about: due within 30 minutes, or released in the last 5 */
+function newsThreat(t){return NEWS.cal.list.filter(e=>e.t-t<=1800&&t-e.t<=300).sort((a,b)=>a.t-b.t)[0]||null;}
+function tradeAdvice(s,e,t,lead=true){
+  const when=lead?`${e.title} ${e.t>t?`in ${inMin(e.t-t)}`:"just released"}. `:"";
+  if(s.status==="pending")return `${when}Your ${s.dir===1?"buy":"sell"} order hasn't filled yet: consider cancelling it until the news is out, because spreads widen and price can jump straight through levels.`;
+  if(s.status==="running")return `${when}Your stop is already at entry, so the trade can't lose. Consider banking more profit now, as the book recommends before big news.`;
+  return `${when}The book recommends tightening your stop or banking some profit before high-impact news, because price can jump past your stop.`;
+}
+function renderNews(){
+  const el=$("#newsCard");if(!el)return;const t=nowS(),w=(S.cfg.newsMins??30)*60;
+  const today=NEWS.cal.list.filter(e=>sameLocalDay(e.t,t)).sort((a,b)=>a.t-b.t),next=nextNews(t);
+  const head=`<div class="chart-head"><h3 style="margin:0">Today's high-impact USD news</h3><span class="small muted">${NEWS.err?"Calendar unavailable":NEWS.cal.t?`ForexFactory calendar${NEWS.cal.src?` via ${NEWS.cal.src}`:""}, your local time`:"Loading calendar…"}</span></div>`;
+  if(NEWS.err&&!NEWS.cal.list.length){el.innerHTML=head+`<p class="small">${esc(NEWS.err)}</p>`;return;}
+  if(!today.length){el.innerHTML=head+`<p class="small">No high-impact USD news today.${next?` Next: <b>${esc(next.title)}</b>, ${when(next.t)}.`:""}</p>`;return;}
+  const row=e=>{const d=e.t-t;let st,cls;
+    if(d<-1800){st="Released";cls="done";}
+    else if(d<=0){st=w&&-d<=w?"Just released, signals paused":"Just released";cls="now";}
+    else if(w&&d<=w){st=`In ${inMin(d)}, signals paused`;cls="now";}
+    else if(d<=3600){st=`In ${inMin(d)}`;cls="soon";}
+    else{st=`In ${inMin(d)}`;cls="";}
+    return `<tr class="news-${cls}"><td class="num">${hm(e.t)}</td><td>${esc(e.title)}</td><td class="r num">${esc(e.forecast||"—")}</td><td class="r num">${esc(e.previous||"—")}</td><td>${st}</td></tr>`;};
+  el.innerHTML=head+`<div class="tblwrap"><table><thead><tr><th>Time</th><th>Event</th><th class="r">Forecast</th><th class="r">Previous</th><th>Status</th></tr></thead><tbody>${today.map(row).join("")}</tbody></table></div>
+    <p class="small muted" style="margin-top:8px">${w?`New signals pause ${S.cfg.newsMins} minutes either side of each event.`:"The news pause is off in Settings."} ${(S.cfg.newsAlert??15)?`You'll get an alert ${S.cfg.newsAlert??15} minutes before each one.`:"News alerts are off in Settings."}</p>`;
+}
+const NEWS_ALERTED=new Set(store.get("xau_news_alerted",[]));
+let newsBanner=null;
+function alertNews(e){
+  const t=nowS(),open=S.log.filter(isOpen),mins=inMin(e.t-t);
+  let msg=`High-impact USD news in ${mins}: ${e.title} at ${hm(e.t)}.`;
+  if(open.length)msg+=" "+tradeAdvice(open.at(-1),e,t,false);
+  newsBanner={id:newsId(e),msg,until:e.t+300};renderNewsBanner();
+  if(S.cfg.sound){beep();setTimeout(beep,450);}
+  clearInterval(flashTimer);let on=false,n=0;const title=document.title.replace(/^● /,"");
+  flashTimer=setInterval(()=>{document.title=(on=!on)?`● NEWS in ${mins}: ${e.title}`:title;if(++n>20){clearInterval(flashTimer);document.title=title;}},800);
+  try{if("Notification" in window&&Notification.permission==="granted")new Notification(`USD news in ${mins}: ${e.title}`,{body:open.length?"You have an open trade. Tighten your stop or bank some profit.":`At ${hm(e.t)}. New signals pause around it.`});}catch(err){}
+}
+function renderNewsBanner(){
+  const el=$("#newsBanner");if(!el)return;
+  if(!newsBanner||nowS()>newsBanner.until){el.style.display="none";return;}
+  el.style.display="flex";el.querySelector("span").textContent=newsBanner.msg;
+}
+function newsWatch(){
+  const t=nowS(),lead=(S.cfg.newsAlert??15)*60;
+  if(lead)for(const e of NEWS.cal.list){const d=e.t-t,id=newsId(e);
+    if(d>0&&d<=lead&&!NEWS_ALERTED.has(id)){NEWS_ALERTED.add(id);store.set("xau_news_alerted",[...NEWS_ALERTED].slice(-60));alertNews(e);}}
+  renderNews();renderNewsBanner();
 }
 
 /* ---------- signal evaluation ---------- */
@@ -964,8 +1062,10 @@ function signalHTML(s){
   else if(p!=null&&(d===1?p<=s.hi:p>=s.lo))state=`Price is inside the entry range now.`;
   else state=`Set ${d===1?"buy":"sell"} limits between ${fmt(s.lo)} and ${fmt(s.hi)}. Price is $${fmt(Math.abs((p??s.hi)-(d===1?s.hi:s.lo)))} away. Cancel if not filled within 60 minutes.`;
   const row=(cls,name,sub,price,note)=>`<div class="lv ${cls}"><div class="lv-name"><b>${name}</b>${sub}</div><div class="lv-price num">${price}<small>${note}</small></div></div>`;
+  const nt=isOpen(s)?newsThreat(nowS()):null;
   return `<div class="sig-top"><div class="sig-dir">${d===1?"Buy":"Sell"}</div><div class="grade">A-grade, ${s.bonus} of ${s.total} confluences</div></div>
   <p class="sig-state">${esc(state)}</p>
+  ${nt?`<p class="news-warn"><b>News warning.</b> ${esc(tradeAdvice(s,nt,nowS()))}</p>`:""}
   <div class="levels">
     ${s.kind==="stop"?row("entry","Entry",`${d===1?"Buy":"Sell"} stop beyond the ${s.candle?esc(s.candle.name):"reversal candle"}`,fmt(en),`zone ${fmt(s.lo)} to ${fmt(s.hi)}`)
       :row("entry","Entry range",`Order at ${fmt(en)}${Math.abs(en-(d===1?s.hi:s.lo))>0.01?", inside the range":""}`,`${fmt(s.lo)}<span class="rng-sep">to</span>${fmt(s.hi)}`,`stop $${fmt(rk)} from ${fmt(en)}`)}
@@ -1129,14 +1229,14 @@ function drawChart(resetView){
 }
 
 let firstDraw=true;
-function renderAll(){renderPrice();renderStatus();renderHero();renderTrend();renderVolume();renderKeys();renderZones();renderHistory();drawChart(firstDraw);firstDraw=false;}
+function renderAll(){renderPrice();renderStatus();renderNews();renderNewsBanner();renderHero();renderTrend();renderVolume();renderKeys();renderZones();renderHistory();drawChart(firstDraw);firstDraw=false;}
 
 /* ---------- settings ---------- */
 const dlg=$("#settings");
 function manualInfo(){const c=S.cfg;$("#manualInfo").textContent=c.offMode!=="none"&&c.manualOffT?`Last matched to XM ${ago(c.manualOffT)}. Current adjustment ${offset()>=0?"+":"−"}$${fmt(Math.abs(offset()))}.`:"";}
 $("#settingsBtn").onclick=()=>{const c=S.cfg;
   dlg.querySelectorAll('input[name="off"]').forEach(r=>r.checked=r.value===c.offMode);
-  $("#tdKey").value=c.tdKey;$("#spread").value=c.spread??0.35;$("#t1").value=c.t1;$("#t2").value=c.t2;$("#t3").value=c.t3;$("#maxRisk").value=c.maxRisk;$("#minExtras").value=String(c.minExtras);$("#entryMode").value=c.entryMode||"limit";$("#newsMins").value=String(c.newsMins??30);$("#sound").checked=c.sound;
+  $("#tdKey").value=c.tdKey;$("#spread").value=c.spread??0.35;$("#t1").value=c.t1;$("#t2").value=c.t2;$("#t3").value=c.t3;$("#maxRisk").value=c.maxRisk;$("#minExtras").value=String(c.minExtras);$("#entryMode").value=c.entryMode||"limit";$("#newsMins").value=String(c.newsMins??30);$("#newsAlert").value=String(c.newsAlert??15);$("#sound").checked=c.sound;
   $("#mustList").innerHTML=CONF.map(cf=>`<label class="small"><input type="checkbox" value="${cf.key}" ${(c.must||[]).includes(cf.key)?"checked":""}> ${cf.name}</label>`).join("");
   $("#brokerPx").value="";manualInfo();dlg.showModal();};
 let pendingManual=null;
@@ -1150,7 +1250,7 @@ $("#saveSettings").onclick=()=>{
   const mode=(dlg.querySelector('input[name="off"]:checked')||{}).value||"none";
   const num=(id,d,lo,hi)=>{const v=+$(id).value;return Number.isFinite(v)&&v>0?Math.min(hi,Math.max(lo,v)):d;};
   let t1=num("#t1",6,1,50),t2=num("#t2",8,1,60),t3=num("#t3",10,1,80);if(t2<t1)t2=t1;if(t3<t2)t3=t2;
-  S.cfg={...S.cfg,offMode:mode,tdKey:$("#tdKey").value.trim(),must:[...dlg.querySelectorAll("#mustList input:checked")].map(x=>x.value),t1,t2,t3,maxRisk:num("#maxRisk",4,1.5,20),minExtras:+$("#minExtras").value,entryMode:$("#entryMode").value,newsMins:+$("#newsMins").value,sound:$("#sound").checked};
+  S.cfg={...S.cfg,offMode:mode,tdKey:$("#tdKey").value.trim(),must:[...dlg.querySelectorAll("#mustList input:checked")].map(x=>x.value),t1,t2,t3,maxRisk:num("#maxRisk",4,1.5,20),minExtras:+$("#minExtras").value,entryMode:$("#entryMode").value,newsMins:+$("#newsMins").value,newsAlert:+$("#newsAlert").value,sound:$("#sound").checked};
   S.cfg.spread=num("#spread",0.35,0,5);
   const pm=pendingManual;pendingManual=null;
   if(pm){S.cfg.manualOff=pm.bp-pm.raw;S.cfg.manualOffT=nowS();S.cfg.xmAdj=0;}
@@ -1538,7 +1638,7 @@ function renderAI(){
 }
 
 /* ---------- start ---------- */
-initChart();renderTabs();renderAll();renderAI();if(!AI.state&&AI.samples.length)retrain();openWS();tick(true);setTimeout(recheckMissed,4000);setTimeout(resolveOldSamples,7000);
+initChart();renderTabs();renderAll();renderAI();if(!AI.state&&AI.samples.length)retrain();openWS();tick(true);setTimeout(recheckMissed,4000);$("#newsBannerClose").onclick=()=>{newsBanner=null;renderNewsBanner();};setInterval(newsWatch,15000);setTimeout(newsWatch,3000);setTimeout(resolveOldSamples,7000);
 setInterval(()=>tick(false),4000);
 </script>
 </body>
